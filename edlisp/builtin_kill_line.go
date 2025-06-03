@@ -4,6 +4,10 @@ import (
 	"fmt"
 )
 
+// BuiltinKillLine deletes text from the point to the end of line(s).
+// For a single line (count=1), deletes from after the current point to the end
+// of the line, preserving the character at the point. For multiple lines, deletes
+// entire lines starting from the current point. The point position remains unchanged.
 func BuiltinKillLine(args []Value, buffer *Buffer) (Value, error) {
 	var count int = 1
 	
@@ -56,4 +60,36 @@ func BuiltinKillLine(args []Value, buffer *Buffer) (Value, error) {
 	buffer.content.WriteString(newContent)
 	
 	return NewString(""), nil
+}
+
+func init() {
+	RegisterDocumentation(FunctionDoc{
+		Name:        "kill-line",
+		Summary:     "Delete text from the point to the end of line(s)",
+		Description: "Deletes text from the current point to the end of the specified number of lines. For a single line (count=1), deletes from after the current point to the end of the line, preserving the character at the point. For multiple lines, deletes entire lines starting from the current point. The point position remains unchanged after the operation.",
+		Category:    "editing",
+		Parameters: []ParameterDoc{
+			{
+				Name:        "count",
+				Type:        "number",
+				Description: "Number of lines to kill (default: 1)",
+				Optional:    true,
+			},
+		},
+		Examples: []ExampleDoc{
+			{
+				Description: "Kill to end of current line",
+				Input:       `goto-char 8; kill-line`,
+				Buffer:      "First line content\nSecond line content\nThird line",
+				Output:      "First li\nSecond line content\nThird line",
+			},
+			{
+				Description: "Kill multiple lines",
+				Input:       `goto-char 1; kill-line 2`,
+				Buffer:      "First line\nSecond line\nThird line\nFourth line",
+				Output:      "Third line\nFourth line",
+			},
+		},
+		SeeAlso: []string{"delete-line", "delete-region", "end-of-line", "kill-word"},
+	})
 }

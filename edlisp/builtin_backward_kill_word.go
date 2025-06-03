@@ -4,6 +4,11 @@ import (
 	"fmt"
 )
 
+// BuiltinBackwardKillWord deletes text from the current point backward by the specified number of words.
+// A word is defined as a sequence of letter characters (as determined by isLetter).
+// The function follows the same word boundary logic as backward-word: it skips over non-word
+// characters to find the end of each word, then deletes from the beginning of that word to the current point.
+// If no count is provided, deletes backward by 1 word. The point moves to the beginning of the deleted region.
 func BuiltinBackwardKillWord(args []Value, buffer *Buffer) (Value, error) {
 	var count int = 1
 	
@@ -47,4 +52,36 @@ func BuiltinBackwardKillWord(args []Value, buffer *Buffer) (Value, error) {
 	buffer.SetPoint(pos + 1) // Convert back to 1-based
 	
 	return NewString(""), nil
+}
+
+func init() {
+	RegisterDocumentation(FunctionDoc{
+		Name:        "backward-kill-word",
+		Summary:     "Delete text backward by a specified number of words",
+		Description: "Deletes text from the current point backward by the specified number of words. A word is defined as a sequence of letter characters. The function follows the same word boundary logic as backward-word: it skips over non-word characters to find the end of each word, then deletes from the beginning of that word to the current point. If no count is provided, deletes backward by 1 word. The point moves to the beginning of the deleted region.",
+		Category:    "editing",
+		Parameters: []ParameterDoc{
+			{
+				Name:        "count",
+				Type:        "number",
+				Description: "Number of words to delete backward (default: 1)",
+				Optional:    true,
+			},
+		},
+		Examples: []ExampleDoc{
+			{
+				Description: "Delete one word backward",
+				Input:       `goto-char 17; backward-kill-word; buffer-substring 1 -1`,
+				Buffer:      "Hello world test",
+				Output:      "Hello world ",
+			},
+			{
+				Description: "Delete multiple words backward",
+				Input:       `goto-char 25; backward-kill-word 2; buffer-substring 1 -1`,
+				Buffer:      "Hello world test buffer content",
+				Output:      "Hello world ontent",
+			},
+		},
+		SeeAlso: []string{"kill-word", "backward-word", "delete-region", "kill-line"},
+	})
 }

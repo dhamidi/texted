@@ -4,6 +4,11 @@ import (
 	"fmt"
 )
 
+// BuiltinMarkLine marks one or more lines starting from the current line.
+// This function creates a region that encompasses complete lines, including their newline characters.
+// The mark is positioned at the beginning of the current line, and the point is moved to the
+// end of the specified number of lines. When count is 1 (default), it marks just the current line.
+// When count is greater than 1, it marks multiple consecutive lines starting from the current line.
 func BuiltinMarkLine(args []Value, buffer *Buffer) (Value, error) {
 	var count int = 1
 	
@@ -42,4 +47,36 @@ func BuiltinMarkLine(args []Value, buffer *Buffer) (Value, error) {
 	buffer.SetPoint(lineEnd + 1)  // Convert back to 1-based
 	
 	return NewString(""), nil
+}
+
+func init() {
+	RegisterDocumentation(FunctionDoc{
+		Name:        "mark-line",
+		Summary:     "Mark one or more complete lines",
+		Description: "Marks one or more lines starting from the current line. This function creates a region that encompasses complete lines, including their newline characters. The mark is positioned at the beginning of the current line, and the point is moved to the end of the specified number of lines.",
+		Category:    "mark",
+		Parameters: []ParameterDoc{
+			{
+				Name:        "count",
+				Type:        "number",
+				Description: "Number of lines to mark, starting from current line. Defaults to 1",
+				Optional:    true,
+			},
+		},
+		Examples: []ExampleDoc{
+			{
+				Description: "Mark current line (default behavior)",
+				Input:       `search-forward "Second"; mark-line; buffer-substring (region-beginning) (region-end)`,
+				Buffer:      "First line\nSecond line\nThird line",
+				Output:      "Marks 'Second line\\n'",
+			},
+			{
+				Description: "Mark multiple lines",
+				Input:       `goto-char 15; mark-line 2`,
+				Buffer:      "First line\nSecond line\nThird line\nFourth line",
+				Output:      "Marks 'Second line\\nThird line\\n'",
+			},
+		},
+		SeeAlso: []string{"mark-word", "mark-whole-buffer", "beginning-of-line", "end-of-line"},
+	})
 }

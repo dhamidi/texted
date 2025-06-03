@@ -5,6 +5,11 @@ import (
 	"regexp"
 )
 
+// BuiltinReSearchBackward searches for the given regular expression pattern backward from the current point.
+// If found, moves point to the end of the rightmost match before the current position and returns an empty string.
+// If not found, returns an error and leaves point unchanged.
+// The function stores information about the last search match for use with replace-match.
+// The pattern is compiled as a regular expression using Go's regexp package syntax.
 func BuiltinReSearchBackward(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 1 {
 		return nil, fmt.Errorf("re-search-backward expects 1 argument, got %d", len(args))
@@ -48,4 +53,36 @@ func BuiltinReSearchBackward(args []Value, buffer *Buffer) (Value, error) {
 	buffer.lastSearchEnd = matchEnd
 	
 	return NewString(""), nil
+}
+
+func init() {
+	RegisterDocumentation(FunctionDoc{
+		Name:        "re-search-backward",
+		Summary:     "Search for regular expression pattern backward from current position",
+		Description: "Searches for the given regular expression pattern backward from the current point using Go's regexp package syntax. Finds all matches before the current position and selects the rightmost (closest to point) match. If found, moves point to the end of the match and stores match information for use with replace-match. If not found, returns an error and leaves point unchanged. If the pattern is invalid, returns a compilation error.",
+		Category:    "search",
+		Parameters: []ParameterDoc{
+			{
+				Name:        "regexp",
+				Type:        "string",
+				Description: "Regular expression pattern to search for (Go regexp syntax)",
+				Optional:    false,
+			},
+		},
+		Examples: []ExampleDoc{
+			{
+				Description: "Search backward for literal text",
+				Input:       `end-of-buffer; re-search-backward "two"`,
+				Buffer:      "One two three",
+				Output:      "Point moves to position 8 (after 'two')",
+			},
+			{
+				Description: "Search backward for pattern",
+				Input:       `end-of-buffer; re-search-backward "[a-z]+"`,
+				Buffer:      "Hello 123 world",
+				Output:      "Point moves to position after rightmost word match",
+			},
+		},
+		SeeAlso: []string{"re-search-forward", "search-backward", "replace-match", "looking-back"},
+	})
 }

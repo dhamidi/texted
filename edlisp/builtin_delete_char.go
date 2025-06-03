@@ -4,6 +4,9 @@ import (
 	"fmt"
 )
 
+// BuiltinDeleteChar deletes characters starting at the current point position.
+// By default, deletes one character forward from the point. The point position
+// remains unchanged after deletion.
 func BuiltinDeleteChar(args []Value, buffer *Buffer) (Value, error) {
 	var count int = 1
 	
@@ -38,4 +41,36 @@ func BuiltinDeleteChar(args []Value, buffer *Buffer) (Value, error) {
 	buffer.content.WriteString(newContent)
 	
 	return NewString(""), nil
+}
+
+func init() {
+	RegisterDocumentation(FunctionDoc{
+		Name:        "delete-char",
+		Summary:     "Delete characters starting at the current point position",
+		Description: "Deletes the specified number of characters starting at the current point position. By default, deletes one character forward from the point. The point position remains unchanged after deletion. If the count exceeds the available characters, deletes up to the end of the buffer.",
+		Category:    "editing",
+		Parameters: []ParameterDoc{
+			{
+				Name:        "count",
+				Type:        "number",
+				Description: "Number of characters to delete (default: 1)",
+				Optional:    true,
+			},
+		},
+		Examples: []ExampleDoc{
+			{
+				Description: "Delete one character at point",
+				Input:       `goto-char 6; delete-char`,
+				Buffer:      "Hello world",
+				Output:      "Helloworld",
+			},
+			{
+				Description: "Delete multiple characters",
+				Input:       `delete-char 3`,
+				Buffer:      "Hello",
+				Output:      "lo",
+			},
+		},
+		SeeAlso: []string{"delete-backward-char", "delete-region", "kill-line", "insert"},
+	})
 }

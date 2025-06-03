@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+// BuiltinSearchForward searches for the given string forward from the current point.
+// If found, moves point to the end of the match and returns an empty string.
+// If not found, returns an error and leaves point unchanged.
+// The function stores information about the last search match for use with replace-match.
 func BuiltinSearchForward(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 1 {
 		return nil, fmt.Errorf("search-forward expects 1 argument, got %d", len(args))
@@ -39,4 +43,36 @@ func BuiltinSearchForward(args []Value, buffer *Buffer) (Value, error) {
 	buffer.lastSearchEnd = matchEnd
 	
 	return NewString(""), nil
+}
+
+func init() {
+	RegisterDocumentation(FunctionDoc{
+		Name:        "search-forward",
+		Summary:     "Search for text forward from current position",
+		Description: "Searches for the given string forward from the current point. If found, moves point to the end of the match and stores match information for use with replace-match. If not found, returns an error and leaves point unchanged.",
+		Category:    "search",
+		Parameters: []ParameterDoc{
+			{
+				Name:        "pattern",
+				Type:        "string",
+				Description: "Text pattern to search for",
+				Optional:    false,
+			},
+		},
+		Examples: []ExampleDoc{
+			{
+				Description: "Basic text search",
+				Input:       `search-forward "test"`,
+				Buffer:      "Hello world, this is a test buffer.",
+				Output:      "Point moves to position after 'test' (position 28)",
+			},
+			{
+				Description: "Search that fails",
+				Input:       `search-forward "missing"`,
+				Buffer:      "Hello world",
+				Output:      "Error: search failed",
+			},
+		},
+		SeeAlso: []string{"search-backward", "re-search-forward", "replace-match"},
+	})
 }

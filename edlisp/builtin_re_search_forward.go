@@ -5,6 +5,11 @@ import (
 	"regexp"
 )
 
+// BuiltinReSearchForward searches for the given regular expression pattern forward from the current point.
+// If found, moves point to the end of the match and returns an empty string.
+// If not found, returns an error and leaves point unchanged.
+// The function stores information about the last search match for use with replace-match.
+// The pattern is compiled as a regular expression using Go's regexp package syntax.
 func BuiltinReSearchForward(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 1 {
 		return nil, fmt.Errorf("re-search-forward expects 1 argument, got %d", len(args))
@@ -44,4 +49,36 @@ func BuiltinReSearchForward(args []Value, buffer *Buffer) (Value, error) {
 	buffer.lastSearchEnd = matchEnd
 	
 	return NewString(""), nil
+}
+
+func init() {
+	RegisterDocumentation(FunctionDoc{
+		Name:        "re-search-forward",
+		Summary:     "Search for regular expression pattern forward from current position",
+		Description: "Searches for the given regular expression pattern forward from the current point using Go's regexp package syntax. If found, moves point to the end of the match and stores match information for use with replace-match. If not found, returns an error and leaves point unchanged. If the pattern is invalid, returns a compilation error.",
+		Category:    "search",
+		Parameters: []ParameterDoc{
+			{
+				Name:        "regexp",
+				Type:        "string",
+				Description: "Regular expression pattern to search for (Go regexp syntax)",
+				Optional:    false,
+			},
+		},
+		Examples: []ExampleDoc{
+			{
+				Description: "Search for word followed by digits",
+				Input:       `re-search-forward "[a-z]+[0-9]+"`,
+				Buffer:      "The function foo123 is defined here.",
+				Output:      "Point moves to position 20 (after 'foo123')",
+			},
+			{
+				Description: "Search for digit pattern",
+				Input:       `re-search-forward "[0-9]+"`,
+				Buffer:      "Hello 123 world",
+				Output:      "Point moves to position after first number match",
+			},
+		},
+		SeeAlso: []string{"re-search-backward", "search-forward", "replace-match", "looking-at"},
+	})
 }
