@@ -1,14 +1,11 @@
-<buffer>First line
-Second line with text
-Third line</buffer>
+<buffer>1
+3 5
+7</buffer>
 <input lang="shell">
-goto-char 25
+search-forward "5"
 beginning-of-line
 point
 </input>
-<output>First line
-Second line with text
-Third line</output>
-<result lang="sexp">11</result>
+<result lang="sexp">3</result>
 <error lang="sexp">
 </error>

@@ -1,10 +1,8 @@
-<buffer>Hello world</buffer>
+<buffer>123</buffer>
 <input lang="shell">
-goto-char 6
+forward-char
 delete-backward-char
-buffer-substring 1 -1
 </input>
-<output>Helloworld</output>
-<result lang="sexp">"Helloworld"</result>
+<output>23</output>
 <error lang="sexp">
 </error>

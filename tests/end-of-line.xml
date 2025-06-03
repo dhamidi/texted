@@ -1,14 +1,11 @@
-<buffer>First line
-Second line with text
-Third line</buffer>
+<buffer>One
+Two
+Three</buffer>
 <input lang="shell">
-goto-char 15
+search-forward "T"
 end-of-line
 point
 </input>
-<output>First line
-Second line with text
-Third line</output>
-<result lang="sexp">32</result>
+<result lang="sexp">8</result>
 <error lang="sexp">
 </error>

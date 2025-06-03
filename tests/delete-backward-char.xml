@@ -1,10 +1,8 @@
-<buffer>Hello world test</buffer>
+<buffer>Hello</buffer>
 <input lang="shell">
-goto-char 8
+forward-char 2
 delete-backward-char 2
-buffer-substring 1 -1
 </input>
-<output>Hello rld test</output>
-<result lang="sexp">"Hello rld test"</result>
+<output>llo</output>
 <error lang="sexp">
 </error>

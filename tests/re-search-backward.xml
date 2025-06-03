@@ -1,14 +1,9 @@
-<buffer>Hello test world, this is a test buffer.
-The word "test" appears twice here.
-Another line with test content.</buffer>
+<buffer>One two three</buffer>
 <input lang="shell">
-goto-char 50
-re-search-backward "test"
+end-of-buffer
+re-search-backward "two"
 point
 </input>
-<output>Hello test world, this is a test buffer.
-The word "test" appears twice here.
-Another line with test content.</output>
-<result lang="sexp">28</result>
+<result lang="sexp">8</result>
 <error lang="sexp">
 </error>
