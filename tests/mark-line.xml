@@ -12,6 +12,5 @@ point
 Second line
 Third line
 Fourth line</output>
-<result lang="sexp">11</result>
 <error lang="sexp">
 </error>

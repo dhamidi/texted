@@ -146,19 +146,30 @@ func RunTestWithTrace(testCase *TestCase, env *edlisp.Environment, traceCallback
 		return result
 	}
 
-	// Check output
-	expected := testCase.Output
-	actual := buffer.String()
+	// Check if at least one expectation is present
+	hasOutputExpectation := testCase.Output != ""
+	expectedResult := strings.TrimSpace(testCase.Result.Text)
+	hasResultExpectation := expectedResult != ""
 
-	if expected != actual {
-		result.Expected = expected
-		result.Actual = actual
-		result.Error = fmt.Errorf("output mismatch:\nexpected: %q\nactual: %q", expected, actual)
+	if !hasOutputExpectation && !hasResultExpectation {
+		result.Error = fmt.Errorf("test case must specify at least one of <output> or <result> elements")
 		return result
 	}
 
+	// Check output if specified
+	if hasOutputExpectation {
+		expected := testCase.Output
+		actual := buffer.String()
+
+		if expected != actual {
+			result.Expected = expected
+			result.Actual = actual
+			result.Error = fmt.Errorf("output mismatch:\nexpected: %q\nactual: %q", expected, actual)
+			return result
+		}
+	}
+
 	// Check result if specified
-	expectedResult := strings.TrimSpace(testCase.Result.Text)
 	if expectedResult != "" {
 		// Parse the expected result using the appropriate parser based on lang attribute
 		var expectedValues []edlisp.Value

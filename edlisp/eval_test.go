@@ -111,3 +111,69 @@ func TestEvalUndefinedFunction(t *testing.T) {
 		t.Errorf("Expected specific error message, got %q", err.Error())
 	}
 }
+
+func TestEvalRecursiveArguments(t *testing.T) {
+	env := NewDefaultEnvironment()
+	buffer := NewBuffer("hello world")
+
+	// Set buffer state: point at 1, mark at 6 (selecting "hello")
+	buffer.SetPoint(1)
+	buffer.SetMark(6)
+
+	// Test buffer-substring with function calls as arguments
+	// This should evaluate (region-beginning) and (region-end) first
+	substringCall := NewList(
+		NewSymbol("buffer-substring"),
+		NewList(NewSymbol("region-beginning")),
+		NewList(NewSymbol("region-end")),
+	)
+
+	program := []Value{substringCall}
+	result, err := Eval(program, env, buffer)
+
+	if err != nil {
+		t.Fatalf("Eval failed: %v", err)
+	}
+
+	if !IsA(result, TheStringKind) {
+		t.Errorf("Expected string result, got %T", result)
+	}
+
+	str := result.(*String)
+	if str.Value != "hello" {
+		t.Errorf("Expected 'hello', got %q", str.Value)
+	}
+}
+
+func TestEvalNestedFunctionCalls(t *testing.T) {
+	env := NewDefaultEnvironment()
+	buffer := NewBuffer("test")
+
+	// Test nested function calls: (length (concat "a" "b"))
+	concatCall := NewList(
+		NewSymbol("concat"),
+		NewString("a"),
+		NewString("b"),
+	)
+
+	lengthCall := NewList(
+		NewSymbol("length"),
+		concatCall,
+	)
+
+	program := []Value{lengthCall}
+	result, err := Eval(program, env, buffer)
+
+	if err != nil {
+		t.Fatalf("Eval failed: %v", err)
+	}
+
+	if !IsA(result, TheNumberKind) {
+		t.Errorf("Expected number result, got %T", result)
+	}
+
+	num := result.(*Number)
+	if num.Value != 2 {
+		t.Errorf("Expected 2, got %f", num.Value)
+	}
+}

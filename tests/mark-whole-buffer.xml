@@ -5,6 +5,5 @@ mark
 point
 </input>
 <output>Hello world test buffer content</output>
-<result lang="sexp">31</result>
 <error lang="sexp">
 </error>

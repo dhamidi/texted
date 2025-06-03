@@ -97,3 +97,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `replace-region "text"` - Replace selected region
 - `replace-match "text"` - Replace last search match
 
+## Testing Notes
+
+- Buffer-content only tests do not need a `<result>` element.

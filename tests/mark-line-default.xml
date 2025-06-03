@@ -2,11 +2,10 @@
 Second line
 Third line</buffer>
 <input lang="shell">
-goto-char 15
+search-forward "Second"
 mark-line
+buffer-substring (region-beginning) (region-end)
 </input>
-<output>First line
-Second line
-Third line</output>
+<result lang="sexp">"Second line\n"</result>
 <error lang="sexp">
 </error>

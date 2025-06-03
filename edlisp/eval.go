@@ -141,7 +141,11 @@ func evalExpression(expr Value, env *Environment, buffer *Buffer) (Value, error)
 
 		args := make([]Value, list.Len()-1)
 		for i := 1; i < list.Len(); i++ {
-			args[i-1] = list.Get(i)
+			evaluatedArg, err := evalExpression(list.Get(i), env, buffer)
+			if err != nil {
+				return nil, err
+			}
+			args[i-1] = evaluatedArg
 		}
 
 		return fn(args, buffer)
