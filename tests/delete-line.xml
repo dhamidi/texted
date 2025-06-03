@@ -1,0 +1,14 @@
+<buffer>First line
+Second line
+Third line
+Fourth line</buffer>
+<input lang="shell">
+goto-char 15
+delete-line 2
+buffer-substring 1 -1
+</input>
+<output>First line
+Fourth line</output>
+<result lang="sexp">"First line\nFourth line"</result>
+<error lang="sexp">
+</error>

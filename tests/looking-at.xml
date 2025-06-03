@@ -1,0 +1,9 @@
+<buffer>Hello world test buffer</buffer>
+<input lang="shell">
+goto-char 7
+looking-at "world"
+</input>
+<output>Hello world test buffer</output>
+<result lang="sexp">t</result>
+<error lang="sexp">
+</error>

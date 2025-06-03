@@ -1,0 +1,13 @@
+<buffer>First line
+Second line
+Third line</buffer>
+<input lang="shell">
+goto-char 15
+delete-line
+buffer-substring 1 -1
+</input>
+<output>First line
+Third line</output>
+<result lang="sexp">"First line\nThird line"</result>
+<error lang="sexp">
+</error>

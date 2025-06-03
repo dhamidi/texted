@@ -1,0 +1,14 @@
+<buffer>First line content
+Second line content
+Third line</buffer>
+<input lang="shell">
+goto-char 8
+kill-line
+buffer-substring 1 -1
+</input>
+<output>First li
+Second line content
+Third line</output>
+<result lang="sexp">"First li\nSecond line content\nThird line"</result>
+<error lang="sexp">
+</error>

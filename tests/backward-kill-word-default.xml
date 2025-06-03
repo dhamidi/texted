@@ -1,0 +1,10 @@
+<buffer>Hello world test</buffer>
+<input lang="shell">
+goto-char 15
+backward-kill-word
+buffer-substring 1 -1
+</input>
+<output>Hello world </output>
+<result lang="sexp">"Hello world "</result>
+<error lang="sexp">
+</error>

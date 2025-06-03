@@ -1,0 +1,8 @@
+<buffer>Test buffer</buffer>
+<input lang="shell">
+string-match "xyz" "Hello world"
+</input>
+<output>Test buffer</output>
+<result lang="sexp">nil</result>
+<error lang="sexp">
+</error>

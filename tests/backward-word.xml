@@ -1,0 +1,10 @@
+<buffer>Hello world test buffer</buffer>
+<input lang="shell">
+goto-char 20
+backward-word 2
+point
+</input>
+<output>Hello world test buffer</output>
+<result lang="sexp">13</result>
+<error lang="sexp">
+</error>

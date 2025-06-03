@@ -1,0 +1,13 @@
+<buffer>First line
+Second line with content
+Third line</buffer>
+<input lang="shell">
+goto-char 25
+current-column
+</input>
+<output>First line
+Second line with content
+Third line</output>
+<result lang="sexp">14</result>
+<error lang="sexp">
+</error>

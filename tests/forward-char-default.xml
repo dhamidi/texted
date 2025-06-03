@@ -1,0 +1,10 @@
+<buffer>Hello world</buffer>
+<input lang="shell">
+goto-char 5
+forward-char
+point
+</input>
+<output>Hello world</output>
+<result lang="sexp">6</result>
+<error lang="sexp">
+</error>

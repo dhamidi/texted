@@ -1,0 +1,10 @@
+<buffer>Hello world test buffer content</buffer>
+<input lang="shell">
+goto-char 1
+kill-word 2
+buffer-substring 1 -1
+</input>
+<output> test buffer content</output>
+<result lang="sexp">" test buffer content"</result>
+<error lang="sexp">
+</error>

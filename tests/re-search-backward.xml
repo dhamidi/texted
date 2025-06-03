@@ -1,0 +1,14 @@
+<buffer>Hello test world, this is a test buffer.
+The word "test" appears twice here.
+Another line with test content.</buffer>
+<input lang="shell">
+goto-char 50
+re-search-backward "test"
+point
+</input>
+<output>Hello test world, this is a test buffer.
+The word "test" appears twice here.
+Another line with test content.</output>
+<result lang="sexp">28</result>
+<error lang="sexp">
+</error>

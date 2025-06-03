@@ -1,0 +1,8 @@
+<buffer>Hello world test buffer</buffer>
+<input lang="shell">
+buffer-size
+</input>
+<output>Hello world test buffer</output>
+<result lang="sexp">23</result>
+<error lang="sexp">
+</error>

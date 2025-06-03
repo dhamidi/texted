@@ -1,0 +1,10 @@
+<buffer>Hello world test buffer content</buffer>
+<input lang="shell">
+mark-whole-buffer
+mark
+point
+</input>
+<output>Hello world test buffer content</output>
+<result lang="sexp">31</result>
+<error lang="sexp">
+</error>

@@ -1,0 +1,8 @@
+<buffer>Test buffer</buffer>
+<input lang="shell">
+substring "Hello world" 7
+</input>
+<output>Test buffer</output>
+<result lang="sexp">"world"</result>
+<error lang="sexp">
+</error>

@@ -1,0 +1,10 @@
+<buffer>Hello world test</buffer>
+<input lang="shell">
+goto-char 6
+delete-char 3
+buffer-substring 1 -1
+</input>
+<output>Hello rld test</output>
+<result lang="sexp">"Hello rld test"</result>
+<error lang="sexp">
+</error>

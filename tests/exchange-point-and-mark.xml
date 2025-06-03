@@ -1,0 +1,12 @@
+<buffer>Hello world test</buffer>
+<input lang="shell">
+goto-char 5
+set-mark
+goto-char 10
+exchange-point-and-mark
+point
+</input>
+<output>Hello world test</output>
+<result lang="sexp">5</result>
+<error lang="sexp">
+</error>

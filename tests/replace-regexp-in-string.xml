@@ -1,0 +1,8 @@
+<buffer>Test buffer</buffer>
+<input lang="shell">
+replace-regexp-in-string "o" "0" "Hello world"
+</input>
+<output>Test buffer</output>
+<result lang="sexp">"Hell0 w0rld"</result>
+<error lang="sexp">
+</error>

@@ -1,0 +1,9 @@
+<buffer>Hello 123 world</buffer>
+<input lang="shell">
+goto-char 10
+looking-back "[0-9]+"
+</input>
+<output>Hello 123 world</output>
+<result lang="sexp">t</result>
+<error lang="sexp">
+</error>

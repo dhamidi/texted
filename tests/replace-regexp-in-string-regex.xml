@@ -1,0 +1,8 @@
+<buffer>Test buffer</buffer>
+<input lang="shell">
+replace-regexp-in-string "[0-9]+" "NUM" "Hello 123 world 456"
+</input>
+<output>Test buffer</output>
+<result lang="sexp">"Hello NUM world NUM"</result>
+<error lang="sexp">
+</error>

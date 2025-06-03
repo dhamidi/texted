@@ -1,0 +1,8 @@
+<buffer>Test buffer</buffer>
+<input lang="shell">
+concat "Hello" " " "beautiful" " " "world"
+</input>
+<output>Test buffer</output>
+<result lang="sexp">"Hello beautiful world"</result>
+<error lang="sexp">
+</error>

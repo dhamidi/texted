@@ -1,0 +1,17 @@
+<buffer>First line
+Second line
+Third line
+Fourth line</buffer>
+<input lang="shell">
+goto-char 15
+mark-line 2
+mark
+point
+</input>
+<output>First line
+Second line
+Third line
+Fourth line</output>
+<result lang="sexp">11</result>
+<error lang="sexp">
+</error>

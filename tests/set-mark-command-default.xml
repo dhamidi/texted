@@ -1,0 +1,10 @@
+<buffer>Hello world test</buffer>
+<input lang="shell">
+goto-char 8
+set-mark-command
+mark
+</input>
+<output>Hello world test</output>
+<result lang="sexp">8</result>
+<error lang="sexp">
+</error>

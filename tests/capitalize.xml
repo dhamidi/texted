@@ -1,0 +1,8 @@
+<buffer>Test buffer</buffer>
+<input lang="shell">
+capitalize "hello world"
+</input>
+<output>Test buffer</output>
+<result lang="sexp">"Hello world"</result>
+<error lang="sexp">
+</error>

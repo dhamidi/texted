@@ -1,0 +1,9 @@
+<buffer>Hello world test</buffer>
+<input lang="shell">
+goto-char 8
+looking-back "test"
+</input>
+<output>Hello world test</output>
+<result lang="sexp">nil</result>
+<error lang="sexp">
+</error>

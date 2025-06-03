@@ -1,0 +1,9 @@
+<buffer>Hello world test</buffer>
+<input lang="shell">
+set-mark-command 5
+mark
+</input>
+<output>Hello world test</output>
+<result lang="sexp">5</result>
+<error lang="sexp">
+</error>

@@ -1,0 +1,8 @@
+<buffer>Test buffer</buffer>
+<input lang="shell">
+string-match "[0-9]+" "Hello 123 world"
+</input>
+<output>Test buffer</output>
+<result lang="sexp">6</result>
+<error lang="sexp">
+</error>
