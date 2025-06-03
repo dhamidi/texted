@@ -154,6 +154,36 @@ func NewDefaultEnvironment() *Environment {
 	env.Functions["region-end"] = BuiltinRegionEnd
 	env.Functions["forward-char"] = BuiltinForwardChar
 	env.Functions["length"] = BuiltinLength
+	env.Functions["substring"] = BuiltinSubstring
+	env.Functions["string-match"] = BuiltinStringMatch
+	env.Functions["backward-char"] = BuiltinBackwardChar
+	env.Functions["beginning-of-buffer"] = BuiltinBeginningOfBuffer
+	env.Functions["beginning-of-line"] = BuiltinBeginningOfLine
+	env.Functions["end-of-line"] = BuiltinEndOfLine
+	env.Functions["buffer-size"] = BuiltinBufferSize
+	env.Functions["point-max"] = BuiltinPointMax
+	env.Functions["point-min"] = BuiltinPointMin
+	env.Functions["current-column"] = BuiltinCurrentColumn
+	env.Functions["upcase"] = BuiltinUpcase
+	env.Functions["downcase"] = BuiltinDowncase
+	env.Functions["capitalize"] = BuiltinCapitalize
+	env.Functions["concat"] = BuiltinConcat
+	env.Functions["set-mark-command"] = BuiltinSetMarkCommand
+	env.Functions["exchange-point-and-mark"] = BuiltinExchangePointAndMark
+	env.Functions["mark-whole-buffer"] = BuiltinMarkWholeBuffer
+	env.Functions["delete-char"] = BuiltinDeleteChar
+	env.Functions["delete-backward-char"] = BuiltinDeleteBackwardChar
+	env.Functions["forward-word"] = BuiltinForwardWord
+	env.Functions["backward-word"] = BuiltinBackwardWord
+	env.Functions["looking-at"] = BuiltinLookingAt
+	env.Functions["looking-back"] = BuiltinLookingBack
+	env.Functions["mark-line"] = BuiltinMarkLine
+	env.Functions["delete-line"] = BuiltinDeleteLine
+	env.Functions["kill-line"] = BuiltinKillLine
+	env.Functions["kill-word"] = BuiltinKillWord
+	env.Functions["backward-kill-word"] = BuiltinBackwardKillWord
+	env.Functions["re-search-backward"] = BuiltinReSearchBackward
+	env.Functions["replace-regexp-in-string"] = BuiltinReplaceRegexpInString
 
 	return env
 }
