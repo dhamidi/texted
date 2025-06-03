@@ -22,9 +22,10 @@ import (
 //   - number: The maximum valid point position (buffer-size + 1)
 //
 // Examples:
-//   point-max → 17 (for 16-character buffer "Hello world test")
-//   point-max → 1 (for empty buffer)
-//   point-max → 12 (for 11-character buffer "Hello world")
+//
+//	point-max → 17 (for 16-character buffer "Hello world test")
+//	point-max → 1 (for empty buffer)
+//	point-max → 12 (for 11-character buffer "Hello world")
 //
 // Related functions:
 //   - point-min: Get minimum valid point position
@@ -37,7 +38,7 @@ func BuiltinPointMax(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 0 {
 		return nil, fmt.Errorf("point-max expects 0 arguments, got %d", len(args))
 	}
-	
+
 	content := buffer.String()
 	return NewNumber(float64(len(content) + 1)), nil
 }

@@ -25,10 +25,11 @@ import (
 //   - string: The extracted substring
 //
 // Examples:
-//   substring "Hello world" 1 5 → "Hell"
-//   substring "Hello world" 7 → "world"
-//   substring "test" 2 3 → "e"
-//   substring "test" 10 → ""
+//
+//	substring "Hello world" 1 5 → "Hell"
+//	substring "Hello world" 7 → "world"
+//	substring "test" 2 3 → "e"
+//	substring "test" 10 → ""
 //
 // Related functions:
 //   - length: Get the length of a string

@@ -8,7 +8,7 @@ import (
 var (
 	// documentationRegistry stores all function documentation
 	documentationRegistry = make(map[string]FunctionDoc)
-	
+
 	// registryMutex protects concurrent access to the documentation registry
 	registryMutex sync.RWMutex
 )
@@ -35,17 +35,17 @@ func GetDocumentation(name string) (FunctionDoc, bool) {
 func GetAllDocumentation() []FunctionDoc {
 	registryMutex.RLock()
 	defer registryMutex.RUnlock()
-	
+
 	docs := make([]FunctionDoc, 0, len(documentationRegistry))
 	for _, doc := range documentationRegistry {
 		docs = append(docs, doc)
 	}
-	
+
 	// Sort by function name for consistent output
 	sort.Slice(docs, func(i, j int) bool {
 		return docs[i].Name < docs[j].Name
 	})
-	
+
 	return docs
 }
 
@@ -54,19 +54,19 @@ func GetAllDocumentation() []FunctionDoc {
 func GetDocumentationByCategory(category string) []FunctionDoc {
 	registryMutex.RLock()
 	defer registryMutex.RUnlock()
-	
+
 	var docs []FunctionDoc
 	for _, doc := range documentationRegistry {
 		if doc.Category == category {
 			docs = append(docs, doc)
 		}
 	}
-	
+
 	// Sort by function name for consistent output
 	sort.Slice(docs, func(i, j int) bool {
 		return docs[i].Name < docs[j].Name
 	})
-	
+
 	return docs
 }
 
@@ -75,19 +75,19 @@ func GetDocumentationByCategory(category string) []FunctionDoc {
 func GetCategories() []string {
 	registryMutex.RLock()
 	defer registryMutex.RUnlock()
-	
+
 	categorySet := make(map[string]bool)
 	for _, doc := range documentationRegistry {
 		if doc.Category != "" {
 			categorySet[doc.Category] = true
 		}
 	}
-	
+
 	categories := make([]string, 0, len(categorySet))
 	for category := range categorySet {
 		categories = append(categories, category)
 	}
-	
+
 	sort.Strings(categories)
 	return categories
 }

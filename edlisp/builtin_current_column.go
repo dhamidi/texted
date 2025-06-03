@@ -24,9 +24,10 @@ import (
 //   - number: The column number (0-based) of the current point
 //
 // Examples:
-//   current-column → 0 (at beginning of line)
-//   current-column → 14 (at position 25 in "First line\nSecond line with content")
-//   current-column → 5 (at position 6 in "Hello world")
+//
+//	current-column → 0 (at beginning of line)
+//	current-column → 14 (at position 25 in "First line\nSecond line with content")
+//	current-column → 5 (at position 6 in "Hello world")
 //
 // Related functions:
 //   - line-number-at-pos: Get the line number of the current point
@@ -39,23 +40,23 @@ func BuiltinCurrentColumn(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 0 {
 		return nil, fmt.Errorf("current-column expects 0 arguments, got %d", len(args))
 	}
-	
+
 	content := buffer.String()
 	pos := buffer.Point() - 1 // Convert to 0-based
-	
+
 	if pos < 0 {
 		return NewNumber(0), nil
 	}
 	if pos >= len(content) {
 		pos = len(content) - 1
 	}
-	
+
 	column := 0
 	// Count backward to find beginning of line
 	for i := pos; i >= 0 && content[i] != '\n'; i-- {
 		column++
 	}
-	
+
 	return NewNumber(float64(column)), nil
 }
 

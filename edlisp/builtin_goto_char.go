@@ -20,14 +20,14 @@ func BuiltinGotoChar(args []Value, buffer *Buffer) (Value, error) {
 
 	num := args[0].(*Number)
 	pos := int(num.Value)
-	
+
 	content := buffer.String()
 	if pos < 1 {
 		pos = 1
 	} else if pos > len(content)+1 {
 		pos = len(content) + 1
 	}
-	
+
 	buffer.SetPoint(pos)
 	return NewString(""), nil
 }

@@ -18,10 +18,11 @@ import (
 //   - string: A new string containing all input strings concatenated together
 //
 // Examples:
-//   concat "Hello" " world" → "Hello world"
-//   concat "Hello" " " "beautiful" " " "world" → "Hello beautiful world"
-//   concat → ""
-//   concat "single" → "single"
+//
+//	concat "Hello" " world" → "Hello world"
+//	concat "Hello" " " "beautiful" " " "world" → "Hello beautiful world"
+//	concat → ""
+//	concat "single" → "single"
 //
 // Related functions:
 //   - substring: Extract a portion of a string
@@ -30,7 +31,7 @@ import (
 // Category: string
 func BuiltinConcat(args []Value, buffer *Buffer) (Value, error) {
 	var result strings.Builder
-	
+
 	for i, arg := range args {
 		if !IsA(arg, TheStringKind) {
 			return nil, fmt.Errorf("concat expects string arguments, got non-string at position %d", i+1)
@@ -38,7 +39,7 @@ func BuiltinConcat(args []Value, buffer *Buffer) (Value, error) {
 		str := arg.(*String)
 		result.WriteString(str.Value)
 	}
-	
+
 	return NewString(result.String()), nil
 }
 

@@ -18,10 +18,11 @@ import (
 //   - string: A new string with the first character uppercase and remaining lowercase
 //
 // Examples:
-//   capitalize "hello world" → "Hello world"
-//   capitalize "HELLO WORLD" → "Hello world"
-//   capitalize "test" → "Test"
-//   capitalize "" → ""
+//
+//	capitalize "hello world" → "Hello world"
+//	capitalize "HELLO WORLD" → "Hello world"
+//	capitalize "test" → "Test"
+//	capitalize "" → ""
 //
 // Related functions:
 //   - upcase: Converts entire string to uppercase
@@ -41,7 +42,7 @@ func BuiltinCapitalize(args []Value, buffer *Buffer) (Value, error) {
 	if len(str.Value) == 0 {
 		return NewString(""), nil
 	}
-	
+
 	result := strings.ToUpper(string(str.Value[0])) + strings.ToLower(str.Value[1:])
 	return NewString(result), nil
 }

@@ -18,9 +18,10 @@ import (
 //   - string: A new string with all alphabetic characters in lowercase
 //
 // Examples:
-//   downcase "Hello World" → "hello world"
-//   downcase "TEST123" → "test123"
-//   downcase "" → ""
+//
+//	downcase "Hello World" → "hello world"
+//	downcase "TEST123" → "test123"
+//	downcase "" → ""
 //
 // Related functions:
 //   - upcase: Converts string to uppercase

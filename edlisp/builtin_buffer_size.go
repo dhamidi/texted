@@ -16,8 +16,9 @@ import (
 //   - number: The total character count in the buffer
 //
 // Examples:
-//   buffer-size → 23 (for buffer "Hello world test buffer")
-//   buffer-size → 0 (for empty buffer)
+//
+//	buffer-size → 23 (for buffer "Hello world test buffer")
+//	buffer-size → 0 (for empty buffer)
 //
 // Related functions:
 //   - point-max: Maximum valid position in buffer (buffer-size + 1)
@@ -28,7 +29,7 @@ func BuiltinBufferSize(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 0 {
 		return nil, fmt.Errorf("buffer-size expects 0 arguments, got %d", len(args))
 	}
-	
+
 	content := buffer.String()
 	return NewNumber(float64(len(content))), nil
 }

@@ -53,7 +53,7 @@ func ParseSexp(s string) ([]edlisp.Value, error) {
 	if trimmed == "" {
 		return []edlisp.Value{}, nil
 	}
-	
+
 	// If it starts with '(', parse as regular S-expression
 	if strings.HasPrefix(trimmed, "(") {
 		expr, err := parseSExpression(trimmed)
@@ -62,13 +62,13 @@ func ParseSexp(s string) ([]edlisp.Value, error) {
 		}
 		return []edlisp.Value{expr}, nil
 	}
-	
+
 	// Otherwise, parse as a single token value
 	value, err := parseToken(trimmed)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return []edlisp.Value{value}, nil
 }
 
@@ -117,10 +117,10 @@ func parseShellLike(line string) (edlisp.Value, error) {
 
 	var elements []edlisp.Value
 	pos := 0
-	
+
 	for pos < len(tokens) {
 		token := tokens[pos]
-		
+
 		// If we encounter an opening parenthesis, parse as S-expression
 		if token == "(" {
 			expr, newPos, err := parseTokens(tokens, pos)

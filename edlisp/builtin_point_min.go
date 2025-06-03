@@ -24,9 +24,10 @@ import (
 //   - number: Always returns 1 (the minimum valid point position)
 //
 // Examples:
-//   point-min → 1 (for any buffer, regardless of content)
-//   point-min → 1 (for empty buffer)
-//   point-min → 1 (for large buffer)
+//
+//	point-min → 1 (for any buffer, regardless of content)
+//	point-min → 1 (for empty buffer)
+//	point-min → 1 (for large buffer)
 //
 // Related functions:
 //   - point-max: Get maximum valid point position
@@ -39,7 +40,7 @@ func BuiltinPointMin(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 0 {
 		return nil, fmt.Errorf("point-min expects 0 arguments, got %d", len(args))
 	}
-	
+
 	return NewNumber(1), nil
 }
 

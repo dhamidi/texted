@@ -23,12 +23,12 @@ func BuiltinReplaceRegexpInString(args []Value, buffer *Buffer) (Value, error) {
 	pattern := args[0].(*String)
 	replacement := args[1].(*String)
 	str := args[2].(*String)
-	
+
 	re, err := regexp.Compile(pattern.Value)
 	if err != nil {
 		return nil, fmt.Errorf("invalid regexp: %v", err)
 	}
-	
+
 	result := re.ReplaceAllString(str.Value, replacement.Value)
 	return NewString(result), nil
 }

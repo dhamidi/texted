@@ -16,9 +16,10 @@ import (
 //   - number: The length of the string in characters
 //
 // Examples:
-//   length "Hello world" → 11
-//   length "" → 0
-//   length "test" → 4
+//
+//	length "Hello world" → 11
+//	length "" → 0
+//	length "test" → 4
 //
 // Related functions:
 //   - substring: Extract a portion of a string using indices

@@ -27,9 +27,10 @@ import (
 //   - number: The line number (1-based) of the current point
 //
 // Examples:
-//   line-number-at-pos → 1 (at beginning of buffer or first line)
-//   line-number-at-pos → 2 (on second line of multi-line buffer)
-//   line-number-at-pos → 3 (on third line after two newlines)
+//
+//	line-number-at-pos → 1 (at beginning of buffer or first line)
+//	line-number-at-pos → 2 (on second line of multi-line buffer)
+//	line-number-at-pos → 3 (on third line after two newlines)
 //
 // Related functions:
 //   - current-column: Get the column number of the current point
@@ -43,24 +44,24 @@ func BuiltinLineNumberAtPos(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 0 {
 		return nil, fmt.Errorf("line-number-at-pos expects 0 arguments, got %d", len(args))
 	}
-	
+
 	content := buffer.String()
 	pos := buffer.Point() - 1 // Convert to 0-based
-	
+
 	if pos < 0 {
 		pos = 0
 	}
 	if pos > len(content) {
 		pos = len(content)
 	}
-	
+
 	lineNum := 1
 	for i := 0; i < pos; i++ {
 		if content[i] == '\n' {
 			lineNum++
 		}
 	}
-	
+
 	return NewNumber(float64(lineNum)), nil
 }
 

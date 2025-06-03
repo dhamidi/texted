@@ -163,7 +163,7 @@ func formatInstruction(instruction edlisp.Value) string {
 	if instruction == nil {
 		return "nil"
 	}
-	
+
 	switch {
 	case edlisp.IsA(instruction, edlisp.TheStringKind):
 		str := instruction.(*edlisp.String)

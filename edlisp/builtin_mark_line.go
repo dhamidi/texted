@@ -11,27 +11,27 @@ import (
 // When count is greater than 1, it marks multiple consecutive lines starting from the current line.
 func BuiltinMarkLine(args []Value, buffer *Buffer) (Value, error) {
 	var count int = 1
-	
+
 	if len(args) > 1 {
 		return nil, fmt.Errorf("mark-line expects at most 1 argument, got %d", len(args))
 	}
-	
+
 	if len(args) == 1 {
 		if !IsA(args[0], TheNumberKind) {
 			return nil, fmt.Errorf("mark-line expects a number argument")
 		}
 		count = int(args[0].(*Number).Value)
 	}
-	
+
 	content := buffer.String()
 	pos := buffer.Point() - 1 // Convert to 0-based
-	
+
 	// Find beginning of current line
 	lineStart := pos
 	for lineStart > 0 && content[lineStart-1] != '\n' {
 		lineStart--
 	}
-	
+
 	// Find end of line(s) based on count
 	lineEnd := pos
 	for i := 0; i < count; i++ {
@@ -42,10 +42,10 @@ func BuiltinMarkLine(args []Value, buffer *Buffer) (Value, error) {
 			lineEnd++ // Include the newline
 		}
 	}
-	
+
 	buffer.SetMark(lineStart + 1) // Convert back to 1-based
 	buffer.SetPoint(lineEnd + 1)  // Convert back to 1-based
-	
+
 	return NewString(""), nil
 }
 

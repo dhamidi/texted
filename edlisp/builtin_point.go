@@ -21,9 +21,10 @@ import (
 //   - number: The current point position (1-based)
 //
 // Examples:
-//   point → 1 (at beginning of buffer)
-//   point → 12 (somewhere in middle of buffer)
-//   point → 17 (at end of 16-character buffer)
+//
+//	point → 1 (at beginning of buffer)
+//	point → 12 (somewhere in middle of buffer)
+//	point → 17 (at end of 16-character buffer)
 //
 // Related functions:
 //   - mark: Get the mark position
@@ -36,7 +37,7 @@ func BuiltinPoint(args []Value, buffer *Buffer) (Value, error) {
 	if len(args) != 0 {
 		return nil, fmt.Errorf("point expects 0 arguments, got %d", len(args))
 	}
-	
+
 	return NewNumber(float64(buffer.Point())), nil
 }
 
