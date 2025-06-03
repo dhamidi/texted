@@ -160,10 +160,18 @@ func RunTestWithTrace(testCase *TestCase, env *edlisp.Environment, traceCallback
 	// Check result if specified
 	expectedResult := strings.TrimSpace(testCase.Result.Text)
 	if expectedResult != "" {
-		// Parse the expected result
-		expectedValues, err := parser.ParseString(expectedResult)
+		// Parse the expected result using the appropriate parser based on lang attribute
+		var expectedValues []edlisp.Value
+		var err error
+		
+		lang := testCase.Result.Lang
+		if lang == "" {
+			lang = "sexp" // Default to sexp
+		}
+		
+		expectedValues, err = parser.ParseFormat(lang, expectedResult)
 		if err != nil {
-			result.Error = fmt.Errorf("parsing expected result: %w", err)
+			result.Error = fmt.Errorf("parsing expected result with format %s: %w", lang, err)
 			return result
 		}
 		
@@ -242,6 +250,7 @@ func formatValue(value edlisp.Value) string {
 		return fmt.Sprintf("%v", value)
 	}
 }
+
 
 // NewDefaultEnvironment creates a default testing environment with basic functions.
 func NewDefaultEnvironment() *edlisp.Environment {

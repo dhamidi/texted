@@ -46,6 +46,49 @@ func ParseString(s string) ([]edlisp.Value, error) {
 	return ParseReader(strings.NewReader(s))
 }
 
+// ParseSexp parses pure S-expression format where simple values are not wrapped in lists.
+// For example, "5" returns [Number(5)], not [List(Number(5))].
+func ParseSexp(s string) ([]edlisp.Value, error) {
+	trimmed := strings.TrimSpace(s)
+	if trimmed == "" {
+		return []edlisp.Value{}, nil
+	}
+	
+	// If it starts with '(', parse as regular S-expression
+	if strings.HasPrefix(trimmed, "(") {
+		expr, err := parseSExpression(trimmed)
+		if err != nil {
+			return nil, err
+		}
+		return []edlisp.Value{expr}, nil
+	}
+	
+	// Otherwise, parse as a single token value
+	value, err := parseToken(trimmed)
+	if err != nil {
+		return nil, err
+	}
+	
+	return []edlisp.Value{value}, nil
+}
+
+// ParseFormat parses input according to the specified format.
+// Supported formats: "sexp", "shell", "json"
+// Defaults to "sexp" for unknown formats.
+func ParseFormat(format, input string) ([]edlisp.Value, error) {
+	switch format {
+	case "sexp", "":
+		return ParseSexp(input)
+	case "shell":
+		return ParseString(input)
+	case "json":
+		return ParseJSONString(input)
+	default:
+		// Default to sexp for unknown formats
+		return ParseSexp(input)
+	}
+}
+
 // parseLine parses a single line according to texted rules.
 func parseLine(line string) (edlisp.Value, error) {
 	if strings.HasPrefix(line, "(") {
