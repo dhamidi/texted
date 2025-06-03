@@ -160,11 +160,29 @@ func RunTestWithTrace(testCase *TestCase, env *edlisp.Environment, traceCallback
 	// Check result if specified
 	expectedResult := strings.TrimSpace(testCase.Result.Text)
 	if expectedResult != "" {
-		actualResult := formatValue(evalResult)
-		if expectedResult != actualResult {
-			result.Expected = expectedResult
-			result.Actual = actualResult
-			result.Error = fmt.Errorf("result mismatch:\nexpected: %q\nactual: %q", expectedResult, actualResult)
+		// Parse the expected result
+		expectedValues, err := parser.ParseString(expectedResult)
+		if err != nil {
+			result.Error = fmt.Errorf("parsing expected result: %w", err)
+			return result
+		}
+		
+		// Get the expected value (should be a single expression)
+		var expectedValue edlisp.Value
+		if len(expectedValues) == 0 {
+			expectedValue = nil
+		} else if len(expectedValues) == 1 {
+			expectedValue = expectedValues[0]
+		} else {
+			result.Error = fmt.Errorf("expected result should contain exactly one expression, got %d", len(expectedValues))
+			return result
+		}
+		
+		// Compare using Equal function
+		if !edlisp.Equal(expectedValue, evalResult) {
+			result.Expected = formatValue(expectedValue)
+			result.Actual = formatValue(evalResult)
+			result.Error = fmt.Errorf("result mismatch:\nexpected: %q\nactual: %q", result.Expected, result.Actual)
 			return result
 		}
 	}
