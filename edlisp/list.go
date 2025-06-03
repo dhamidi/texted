@@ -41,7 +41,7 @@ func (list *List) String() string {
 	if len(list.Elements) == 0 {
 		return "()"
 	}
-	
+
 	var parts []string
 	for _, element := range list.Elements {
 		parts = append(parts, fmt.Sprintf("%v", element))
