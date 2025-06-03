@@ -9,6 +9,6 @@ point
 <output>Hello world, this is a test buffer.
 The word "test" appears twice here.
 Another line with test content.</output>
-<result lang="sexp">71</result>
+<result lang="sexp">95</result>
 <error lang="sexp">
 </error>

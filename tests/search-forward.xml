@@ -8,6 +8,6 @@ point
 <output>Hello world, this is a test buffer.
 The word "test" appears twice here.
 Another line with test content.</output>
-<result lang="sexp">26</result>
+<result lang="sexp">28</result>
 <error lang="sexp">
 </error>

@@ -16,9 +16,12 @@ type Environment struct {
 
 // Buffer represents a text buffer for editing operations.
 type Buffer struct {
-	content strings.Builder
-	point   int
-	mark    int
+	content         strings.Builder
+	point           int
+	mark            int
+	lastSearchMatch string
+	lastSearchStart int
+	lastSearchEnd   int
 }
 
 // NewBuffer creates a new buffer with the given initial content.
@@ -130,8 +133,25 @@ func NewDefaultEnvironment() *Environment {
 		Functions: make(map[string]BuiltinFn),
 	}
 
-	// Add basic insert function
+	// Add builtin functions
 	env.Functions["insert"] = BuiltinInsert
+	env.Functions["goto-char"] = BuiltinGotoChar
+	env.Functions["goto-line"] = BuiltinGotoLine
+	env.Functions["search-forward"] = BuiltinSearchForward
+	env.Functions["search-backward"] = BuiltinSearchBackward
+	env.Functions["re-search-forward"] = BuiltinReSearchForward
+	env.Functions["end-of-buffer"] = BuiltinEndOfBuffer
+	env.Functions["set-mark"] = BuiltinSetMark
+	env.Functions["mark"] = BuiltinMark
+	env.Functions["point"] = BuiltinPoint
+	env.Functions["line-number-at-pos"] = BuiltinLineNumberAtPos
+	env.Functions["replace-match"] = BuiltinReplaceMatch
+	env.Functions["delete-region"] = BuiltinDeleteRegion
+	env.Functions["buffer-substring"] = BuiltinBufferSubstring
+	env.Functions["mark-word"] = BuiltinMarkWord
+	env.Functions["replace-region"] = BuiltinReplaceRegion
+	env.Functions["region-beginning"] = BuiltinRegionBeginning
+	env.Functions["region-end"] = BuiltinRegionEnd
 
 	return env
 }
