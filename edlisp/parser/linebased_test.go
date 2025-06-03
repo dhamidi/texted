@@ -363,3 +363,180 @@ func TestParseToken(t *testing.T) {
 		})
 	}
 }
+
+func TestParseString_NestedSExpression_BufferSubstring(t *testing.T) {
+	input := `buffer-substring (region-beginning) (region-end)`
+	result, err := ParseString(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 expression, got %d", len(result))
+	}
+
+	list := result[0].(*edlisp.List)
+	if len(list.Elements) != 3 {
+		t.Fatalf("expected 3 elements, got %d", len(list.Elements))
+	}
+
+	// Check first element is symbol 'buffer-substring'
+	sym := list.Elements[0].(*edlisp.Symbol)
+	if sym.Name != "buffer-substring" {
+		t.Errorf("expected 'buffer-substring', got '%s'", sym.Name)
+	}
+
+	// Check second element is nested list (region-beginning)
+	nestedList1 := list.Elements[1].(*edlisp.List)
+	if len(nestedList1.Elements) != 1 {
+		t.Fatalf("expected 1 element in first nested list, got %d", len(nestedList1.Elements))
+	}
+	if nestedList1.Elements[0].(*edlisp.Symbol).Name != "region-beginning" {
+		t.Errorf("expected 'region-beginning' in first nested list")
+	}
+
+	// Check third element is nested list (region-end)
+	nestedList2 := list.Elements[2].(*edlisp.List)
+	if len(nestedList2.Elements) != 1 {
+		t.Fatalf("expected 1 element in second nested list, got %d", len(nestedList2.Elements))
+	}
+	if nestedList2.Elements[0].(*edlisp.Symbol).Name != "region-end" {
+		t.Errorf("expected 'region-end' in second nested list")
+	}
+}
+
+func TestParseString_DeeplyNestedSExpression(t *testing.T) {
+	input := `(outer (middle (inner "value")) 42)`
+	result, err := ParseString(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 expression, got %d", len(result))
+	}
+
+	list := result[0].(*edlisp.List)
+	if len(list.Elements) != 3 {
+		t.Fatalf("expected 3 elements, got %d", len(list.Elements))
+	}
+
+	// Check first element is symbol 'outer'
+	sym := list.Elements[0].(*edlisp.Symbol)
+	if sym.Name != "outer" {
+		t.Errorf("expected 'outer', got '%s'", sym.Name)
+	}
+
+	// Check second element is nested list (middle ...)
+	middleList := list.Elements[1].(*edlisp.List)
+	if len(middleList.Elements) != 2 {
+		t.Fatalf("expected 2 elements in middle list, got %d", len(middleList.Elements))
+	}
+	if middleList.Elements[0].(*edlisp.Symbol).Name != "middle" {
+		t.Errorf("expected 'middle' in middle list")
+	}
+
+	// Check the inner nested list
+	innerList := middleList.Elements[1].(*edlisp.List)
+	if len(innerList.Elements) != 2 {
+		t.Fatalf("expected 2 elements in inner list, got %d", len(innerList.Elements))
+	}
+	if innerList.Elements[0].(*edlisp.Symbol).Name != "inner" {
+		t.Errorf("expected 'inner' in inner list")
+	}
+	if innerList.Elements[1].(*edlisp.String).Value != "value" {
+		t.Errorf("expected 'value' string in inner list")
+	}
+
+	// Check third element is number 42
+	num := list.Elements[2].(*edlisp.Number)
+	if num.Value != 42 {
+		t.Errorf("expected 42, got %f", num.Value)
+	}
+}
+
+func TestParseString_MultipleNestedExpressions(t *testing.T) {
+	input := `(replace-region (buffer-substring (region-beginning) (region-end)))`
+	result, err := ParseString(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 expression, got %d", len(result))
+	}
+
+	list := result[0].(*edlisp.List)
+	if len(list.Elements) != 2 {
+		t.Fatalf("expected 2 elements, got %d", len(list.Elements))
+	}
+
+	// Check first element is symbol 'replace-region'
+	sym := list.Elements[0].(*edlisp.Symbol)
+	if sym.Name != "replace-region" {
+		t.Errorf("expected 'replace-region', got '%s'", sym.Name)
+	}
+
+	// Check second element is nested buffer-substring expression
+	bufferSubList := list.Elements[1].(*edlisp.List)
+	if len(bufferSubList.Elements) != 3 {
+		t.Fatalf("expected 3 elements in buffer-substring list, got %d", len(bufferSubList.Elements))
+	}
+	if bufferSubList.Elements[0].(*edlisp.Symbol).Name != "buffer-substring" {
+		t.Errorf("expected 'buffer-substring' in nested list")
+	}
+
+	// Check the nested function calls within buffer-substring
+	regionBeginList := bufferSubList.Elements[1].(*edlisp.List)
+	if regionBeginList.Elements[0].(*edlisp.Symbol).Name != "region-beginning" {
+		t.Errorf("expected 'region-beginning'")
+	}
+
+	regionEndList := bufferSubList.Elements[2].(*edlisp.List)
+	if regionEndList.Elements[0].(*edlisp.Symbol).Name != "region-end" {
+		t.Errorf("expected 'region-end'")
+	}
+}
+
+func TestParseString_NestedWithMixedTypes(t *testing.T) {
+	input := `(goto-char (+ (point) 10))`
+	result, err := ParseString(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 expression, got %d", len(result))
+	}
+
+	list := result[0].(*edlisp.List)
+	if len(list.Elements) != 2 {
+		t.Fatalf("expected 2 elements, got %d", len(list.Elements))
+	}
+
+	// Check first element is symbol 'goto-char'
+	sym := list.Elements[0].(*edlisp.Symbol)
+	if sym.Name != "goto-char" {
+		t.Errorf("expected 'goto-char', got '%s'", sym.Name)
+	}
+
+	// Check second element is nested arithmetic expression
+	mathList := list.Elements[1].(*edlisp.List)
+	if len(mathList.Elements) != 3 {
+		t.Fatalf("expected 3 elements in math expression, got %d", len(mathList.Elements))
+	}
+
+	if mathList.Elements[0].(*edlisp.Symbol).Name != "+" {
+		t.Errorf("expected '+' operator")
+	}
+
+	pointList := mathList.Elements[1].(*edlisp.List)
+	if pointList.Elements[0].(*edlisp.Symbol).Name != "point" {
+		t.Errorf("expected 'point' function call")
+	}
+
+	num := mathList.Elements[2].(*edlisp.Number)
+	if num.Value != 10 {
+		t.Errorf("expected 10, got %f", num.Value)
+	}
+}

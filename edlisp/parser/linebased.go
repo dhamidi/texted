@@ -115,20 +115,31 @@ func parseShellLike(line string) (edlisp.Value, error) {
 		return nil, err
 	}
 
-	// Check for invalid syntax in shell-like mode
-	for _, token := range tokens {
-		if token == "(" || token == ")" {
-			return nil, fmt.Errorf("unexpected parenthesis in shell-like syntax: %s", token)
-		}
-	}
-
 	var elements []edlisp.Value
-	for _, token := range tokens {
-		value, err := parseToken(token)
-		if err != nil {
-			return nil, err
+	pos := 0
+	
+	for pos < len(tokens) {
+		token := tokens[pos]
+		
+		// If we encounter an opening parenthesis, parse as S-expression
+		if token == "(" {
+			expr, newPos, err := parseTokens(tokens, pos)
+			if err != nil {
+				return nil, err
+			}
+			elements = append(elements, expr)
+			pos = newPos
+		} else if token == ")" {
+			return nil, fmt.Errorf("unexpected closing parenthesis in shell-like syntax")
+		} else {
+			// Parse as regular token
+			value, err := parseToken(token)
+			if err != nil {
+				return nil, err
+			}
+			elements = append(elements, value)
+			pos++
 		}
-		elements = append(elements, value)
 	}
 
 	return &edlisp.List{Elements: elements}, nil
