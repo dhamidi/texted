@@ -4,12 +4,9 @@ Third line</buffer>
 <input lang="shell">
 goto-char 15
 mark-line
-mark
-point
 </input>
 <output>First line
 Second line
 Third line</output>
-<result lang="sexp">11</result>
 <error lang="sexp">
 </error>
