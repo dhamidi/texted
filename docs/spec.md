@@ -141,3 +141,33 @@ func (sym *Symbol) Kind() ValueKind {
 // same for lists (backed by slices)
 // same for strings
 ```
+
+### Evaluation semantics
+
+The evaluation environment consists of:
+
+- a set of available functions,
+- a buffer to operate on,
+- a read-only source buffer,
+- the program that is currently executed,
+- the instruction pointer in this program
+
+All instructions are executed sequentially and execution halts when the first error
+is returned by an instruction.
+
+`edlisp` values follow regular Lisp-1 semantics:
+
+- the first element of a list must be a symbol, referring to a function to execute,
+- no special forms are supported,
+- strings evaluate to themselves,
+- numbers evaluate to themselves.
+
+On the Go level:
+
+```go
+package edlisp
+
+type BuiltinFn = func(Value) (Value, error)
+
+func Eval(program Value, env *Environment) (Value, error)
+```
