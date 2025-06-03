@@ -1,17 +1,15 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/dhamidi/texted/edlisp"
 	"github.com/dhamidi/texted/edlisp/parser"
+	"github.com/dhamidi/texted/edlisp/writer"
 )
 
 // NewParseCommand creates the parse subcommand.
@@ -84,116 +82,10 @@ func parseInput(r io.Reader, format string) ([]edlisp.Value, error) {
 
 // writeOutput writes expressions to a writer in the specified output format.
 func writeOutput(w io.Writer, expressions []edlisp.Value, format string) error {
-	switch format {
-	case "shell":
-		return writeShellFormat(w, expressions)
-	case "sexp":
-		return writeSExpFormat(w, expressions)
-	case "json":
-		return writeJSONFormat(w, expressions)
-	default:
+	writerInstance, err := writer.NewWriter(writer.Format(format))
+	if err != nil {
 		return fmt.Errorf("unsupported output format: %s", format)
 	}
+	return writerInstance.Write(w, expressions)
 }
 
-// writeShellFormat writes expressions in shell-like format.
-func writeShellFormat(w io.Writer, expressions []edlisp.Value) error {
-	for _, expr := range expressions {
-		shellStr, err := toShellString(expr)
-		if err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintln(w, shellStr); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// writeSExpFormat writes expressions in S-expression format.
-func writeSExpFormat(w io.Writer, expressions []edlisp.Value) error {
-	for _, expr := range expressions {
-		if _, err := fmt.Fprintln(w, expr); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// writeJSONFormat writes expressions in JSON format.
-func writeJSONFormat(w io.Writer, expressions []edlisp.Value) error {
-	encoder := json.NewEncoder(w)
-	for _, expr := range expressions {
-		jsonValue, err := toJSONValue(expr)
-		if err != nil {
-			return err
-		}
-		if err := encoder.Encode(jsonValue); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// toShellString converts an edlisp value to shell-like string format.
-func toShellString(value edlisp.Value) (string, error) {
-	list, ok := value.(*edlisp.List)
-	if !ok {
-		return "", fmt.Errorf("can only convert lists to shell format, got %T", value)
-	}
-
-	if list.IsEmpty() {
-		return "", nil
-	}
-
-	var parts []string
-	for _, element := range list.Elements {
-		part, err := valueToShellToken(element)
-		if err != nil {
-			return "", err
-		}
-		parts = append(parts, part)
-	}
-
-	return strings.Join(parts, " "), nil
-}
-
-// valueToShellToken converts a single value to a shell token.
-func valueToShellToken(value edlisp.Value) (string, error) {
-	switch v := value.(type) {
-	case *edlisp.Symbol:
-		return v.Name, nil
-	case *edlisp.String:
-		return strconv.Quote(v.Value), nil
-	case *edlisp.Number:
-		return fmt.Sprintf("%v", v), nil
-	case *edlisp.List:
-		return "", fmt.Errorf("nested lists are not supported in shell format")
-	default:
-		return "", fmt.Errorf("unsupported value type for shell format: %T", value)
-	}
-}
-
-// toJSONValue converts an edlisp value to a JSON-compatible value.
-func toJSONValue(value edlisp.Value) (interface{}, error) {
-	switch v := value.(type) {
-	case *edlisp.List:
-		var jsonArray []interface{}
-		for _, element := range v.Elements {
-			jsonValue, err := toJSONValue(element)
-			if err != nil {
-				return nil, err
-			}
-			jsonArray = append(jsonArray, jsonValue)
-		}
-		return jsonArray, nil
-	case *edlisp.Symbol:
-		return v.Name, nil
-	case *edlisp.String:
-		return v.Value, nil
-	case *edlisp.Number:
-		return v.Value, nil
-	default:
-		return nil, fmt.Errorf("unsupported value type for JSON: %T", value)
-	}
-}
