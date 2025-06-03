@@ -1,5 +1,7 @@
 package edlisp
 
+import "fmt"
+
 // StringKind represents the kind for string values.
 type StringKind struct{}
 
@@ -28,5 +30,5 @@ func NewString(value string) *String {
 
 // String returns the string representation of the string value.
 func (str *String) String() string {
-	return str.Value
+	return fmt.Sprintf("%q", str.Value)
 }
