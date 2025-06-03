@@ -36,12 +36,12 @@ func Equal(a, b Value) bool {
 	case IsA(a, TheListKind):
 		aList := a.(*List)
 		bList := b.(*List)
-		
+
 		// Check if lengths are different
 		if aList.Len() != bList.Len() {
 			return false
 		}
-		
+
 		// Recursively check each element
 		for i := 0; i < aList.Len(); i++ {
 			if !Equal(aList.Get(i), bList.Get(i)) {

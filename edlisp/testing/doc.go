@@ -11,13 +11,13 @@
 // Example usage:
 //
 //	env := testing.NewDefaultEnvironment()
-//	
+//
 //	// Add custom functions
 //	env.Functions["search-forward"] = func(args []edlisp.Value, buffer *edlisp.Buffer) (edlisp.Value, error) {
 //		// Implementation here
 //		return edlisp.NewString(""), nil
 //	}
-//	
+//
 //	result := testing.RunTestFile("test.xml", env)
 //	if !result.Passed {
 //		fmt.Printf("Test failed: %v\n", result.Error)

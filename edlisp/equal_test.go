@@ -191,7 +191,7 @@ func TestEqual_ComplexNestedStructures(t *testing.T) {
 			),
 		),
 	)
-	
+
 	deepList2 := NewList(
 		NewString("level1"),
 		NewList(
@@ -202,7 +202,7 @@ func TestEqual_ComplexNestedStructures(t *testing.T) {
 			),
 		),
 	)
-	
+
 	deepList3 := NewList(
 		NewString("level1"),
 		NewList(

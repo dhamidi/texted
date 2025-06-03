@@ -49,7 +49,6 @@ type TestResult struct {
 	Actual   string
 }
 
-
 // ParseTestCase parses a test case from XML.
 func ParseTestCase(r io.Reader) (*TestCase, error) {
 	// Since the XML doesn't have a root wrapper, we need to wrap it
@@ -57,23 +56,23 @@ func ParseTestCase(r io.Reader) (*TestCase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("reading test case: %w", err)
 	}
-	
+
 	wrappedXML := "<testcase>" + string(content) + "</testcase>"
-	
+
 	var wrapper struct {
-		XMLName xml.Name  `xml:"testcase"`
-		Buffer  string    `xml:"buffer"`
-		Input   Input     `xml:"input"`
-		Output  string    `xml:"output"`
-		Result  Result    `xml:"result"`
-		Error   Error     `xml:"error"`
+		XMLName xml.Name `xml:"testcase"`
+		Buffer  string   `xml:"buffer"`
+		Input   Input    `xml:"input"`
+		Output  string   `xml:"output"`
+		Result  Result   `xml:"result"`
+		Error   Error    `xml:"error"`
 	}
-	
+
 	err = xml.Unmarshal([]byte(wrappedXML), &wrapper)
 	if err != nil {
 		return nil, fmt.Errorf("parsing test case: %w", err)
 	}
-	
+
 	return &TestCase{
 		Buffer: wrapper.Buffer,
 		Input:  wrapper.Input,
@@ -174,18 +173,18 @@ func RunTestWithTrace(testCase *TestCase, env *edlisp.Environment, traceCallback
 		// Parse the expected result using the appropriate parser based on lang attribute
 		var expectedValues []edlisp.Value
 		var err error
-		
+
 		lang := testCase.Result.Lang
 		if lang == "" {
 			lang = "sexp" // Default to sexp
 		}
-		
+
 		expectedValues, err = parser.ParseFormat(lang, expectedResult)
 		if err != nil {
 			result.Error = fmt.Errorf("parsing expected result with format %s: %w", lang, err)
 			return result
 		}
-		
+
 		// Get the expected value (should be a single expression)
 		var expectedValue edlisp.Value
 		if len(expectedValues) == 0 {
@@ -196,7 +195,7 @@ func RunTestWithTrace(testCase *TestCase, env *edlisp.Environment, traceCallback
 			result.Error = fmt.Errorf("expected result should contain exactly one expression, got %d", len(expectedValues))
 			return result
 		}
-		
+
 		// Compare using Equal function
 		if !edlisp.Equal(expectedValue, evalResult) {
 			result.Expected = formatValue(expectedValue)
@@ -235,7 +234,7 @@ func formatValue(value edlisp.Value) string {
 	if value == nil {
 		return "nil"
 	}
-	
+
 	switch {
 	case edlisp.IsA(value, edlisp.TheStringKind):
 		str := value.(*edlisp.String)
@@ -261,7 +260,6 @@ func formatValue(value edlisp.Value) string {
 		return fmt.Sprintf("%v", value)
 	}
 }
-
 
 // NewDefaultEnvironment creates a default testing environment with basic functions.
 func NewDefaultEnvironment() *edlisp.Environment {
