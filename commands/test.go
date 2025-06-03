@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -17,6 +18,7 @@ func NewTestCommand() *cobra.Command {
 	var verbose bool
 	var quiet bool
 	var failOnly bool
+	var trace bool
 	var include []string
 
 	cmd := &cobra.Command{
@@ -27,20 +29,21 @@ func NewTestCommand() *cobra.Command {
 Tests can be run individually by specifying test files, or filtered using include patterns.
 Output verbosity can be controlled with flags.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			runTests(args, include, verbose, quiet, failOnly)
+			runTests(args, include, verbose, quiet, failOnly, trace)
 		},
 	}
 
 	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show verbose output with before/after buffer states")
 	cmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Show only pass/fail summary")
 	cmd.Flags().BoolVar(&failOnly, "fail-only", false, "Show output only for failing tests")
+	cmd.Flags().BoolVar(&trace, "trace", false, "Show trace output for each instruction")
 	cmd.Flags().StringSliceVarP(&include, "include", "i", nil, "Include tests matching pattern (can be used multiple times)")
 
 	return cmd
 }
 
 // runTests executes the test runner
-func runTests(testFiles []string, includePatterns []string, verbose, quiet, failOnly bool) {
+func runTests(testFiles []string, includePatterns []string, verbose, quiet, failOnly, trace bool) {
 	var filesToTest []string
 
 	if len(testFiles) == 0 {
@@ -88,7 +91,13 @@ func runTests(testFiles []string, includePatterns []string, verbose, quiet, fail
 	passedTests := 0
 
 	for _, testFile := range filesToTest {
-		result := testing.RunTestFile(testFile, env)
+		var result *testing.TestResult
+		if trace {
+			traceCallback := createTraceCallback()
+			result = testing.RunTestFileWithTrace(testFile, env, traceCallback)
+		} else {
+			result = testing.RunTestFile(testFile, env)
+		}
 		results = append(results, result)
 		totalTests++
 		if result.Passed {
@@ -136,5 +145,46 @@ func printTestResult(result *testing.TestResult, verbose bool) {
 			fmt.Printf("  Expected: %q\n", result.Expected)
 			fmt.Printf("  Actual:   %q\n", result.Actual)
 		}
+	}
+}
+
+// createTraceCallback creates a trace callback function that logs buffer state.
+func createTraceCallback() edlisp.TraceCallback {
+	return func(ctx *edlisp.TraceContext) {
+		fmt.Printf("TRACE: Executed instruction: %s\n", formatInstruction(ctx.Instruction))
+		fmt.Printf("  Buffer content: %q\n", ctx.Buffer.String())
+		fmt.Printf("  Point: %d, Mark: %d\n", ctx.Buffer.Point(), ctx.Buffer.Mark())
+		fmt.Println()
+	}
+}
+
+// formatInstruction formats an instruction for trace output.
+func formatInstruction(instruction edlisp.Value) string {
+	if instruction == nil {
+		return "nil"
+	}
+	
+	switch {
+	case edlisp.IsA(instruction, edlisp.TheStringKind):
+		str := instruction.(*edlisp.String)
+		return fmt.Sprintf(`"%s"`, str.Value)
+	case edlisp.IsA(instruction, edlisp.TheNumberKind):
+		num := instruction.(*edlisp.Number)
+		if num.Value == float64(int(num.Value)) {
+			return fmt.Sprintf("%d", int(num.Value))
+		}
+		return fmt.Sprintf("%g", num.Value)
+	case edlisp.IsA(instruction, edlisp.TheSymbolKind):
+		sym := instruction.(*edlisp.Symbol)
+		return sym.Name
+	case edlisp.IsA(instruction, edlisp.TheListKind):
+		list := instruction.(*edlisp.List)
+		var parts []string
+		for i := 0; i < list.Len(); i++ {
+			parts = append(parts, formatInstruction(list.Get(i)))
+		}
+		return fmt.Sprintf("(%s)", strings.Join(parts, " "))
+	default:
+		return fmt.Sprintf("%v", instruction)
 	}
 }

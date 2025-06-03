@@ -96,6 +96,11 @@ func ParseTestFile(filename string) (*TestCase, error) {
 
 // RunTest executes a single test case.
 func RunTest(testCase *TestCase, env *edlisp.Environment) *TestResult {
+	return RunTestWithTrace(testCase, env, nil)
+}
+
+// RunTestWithTrace executes a single test case with optional tracing.
+func RunTestWithTrace(testCase *TestCase, env *edlisp.Environment, traceCallback edlisp.TraceCallback) *TestResult {
 	name := filepath.Base("unknown")
 	result := &TestResult{Name: name}
 
@@ -118,7 +123,7 @@ func RunTest(testCase *TestCase, env *edlisp.Environment) *TestResult {
 	}
 
 	// Execute the program
-	evalResult, evalErr := edlisp.Eval(program, env, buffer)
+	evalResult, evalErr := edlisp.EvalWithTrace(program, env, buffer, traceCallback)
 
 	// Check for expected error
 	expectedError := strings.TrimSpace(testCase.Error.Text)
@@ -170,6 +175,11 @@ func RunTest(testCase *TestCase, env *edlisp.Environment) *TestResult {
 
 // RunTestFile runs a test from a file.
 func RunTestFile(filename string, env *edlisp.Environment) *TestResult {
+	return RunTestFileWithTrace(filename, env, nil)
+}
+
+// RunTestFileWithTrace runs a test from a file with optional tracing.
+func RunTestFileWithTrace(filename string, env *edlisp.Environment, traceCallback edlisp.TraceCallback) *TestResult {
 	testCase, err := ParseTestFile(filename)
 	if err != nil {
 		return &TestResult{
@@ -178,7 +188,7 @@ func RunTestFile(filename string, env *edlisp.Environment) *TestResult {
 		}
 	}
 
-	result := RunTest(testCase, env)
+	result := RunTestWithTrace(testCase, env, traceCallback)
 	result.Name = filepath.Base(filename)
 	return result
 }

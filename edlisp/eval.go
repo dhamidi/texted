@@ -8,6 +8,16 @@ import (
 // BuiltinFn represents a built-in function that can be called from texted scripts.
 type BuiltinFn func(args []Value, buffer *Buffer) (Value, error)
 
+// TraceContext holds the context information for trace callbacks.
+type TraceContext struct {
+	Buffer      *Buffer
+	Environment *Environment
+	Instruction Value
+}
+
+// TraceCallback is a function that is called after each instruction is executed.
+type TraceCallback func(ctx *TraceContext)
+
 // Environment represents the execution environment for evaluation.
 type Environment struct {
 	// Functions maps function names to their implementations
@@ -77,6 +87,11 @@ func (b *Buffer) Insert(text string) {
 
 // Eval executes a texted program in the given environment.
 func Eval(program []Value, env *Environment, buffer *Buffer) (Value, error) {
+	return EvalWithTrace(program, env, buffer, nil)
+}
+
+// EvalWithTrace executes a texted program with optional tracing.
+func EvalWithTrace(program []Value, env *Environment, buffer *Buffer, traceCallback TraceCallback) (Value, error) {
 	var result Value = NewString("")
 
 	for _, expr := range program {
@@ -85,6 +100,14 @@ func Eval(program []Value, env *Environment, buffer *Buffer) (Value, error) {
 			return nil, err
 		}
 		result = val
+
+		if traceCallback != nil {
+			traceCallback(&TraceContext{
+				Buffer:      buffer,
+				Environment: env,
+				Instruction: expr,
+			})
+		}
 	}
 
 	return result, nil
