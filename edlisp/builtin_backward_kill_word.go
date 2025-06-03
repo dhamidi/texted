@@ -19,22 +19,28 @@ func BuiltinBackwardKillWord(args []Value, buffer *Buffer) (Value, error) {
 	}
 	
 	content := buffer.String()
-	endPos := buffer.Point() - 1 // Convert to 0-based
-	pos := endPos
+	startPos := buffer.Point() - 1 // Convert to 0-based
+	pos := startPos
 	
+	// Use the same logic as backward-word to find where to move backward to
 	for i := 0; i < count && pos > 0; i++ {
-		// Move backward to start of previous word
-		// First skip any non-word characters before current position
+		// Skip current non-word characters
 		for pos > 0 && !isLetter(content[pos-1]) {
 			pos--
 		}
-		// Then skip the word characters to get to beginning of word
+		// Skip word characters to get to beginning of word
 		for pos > 0 && isLetter(content[pos-1]) {
 			pos--
 		}
 	}
 	
-	newContent := content[:pos] + content[endPos:]
+	// Delete from pos to startPos+1 (to include the character at startPos)
+	// Handle case where startPos is at or beyond end of buffer
+	endIndex := startPos + 1
+	if endIndex > len(content) {
+		endIndex = len(content)
+	}
+	newContent := content[:pos] + content[endIndex:]
 	buffer.content.Reset()
 	buffer.content.WriteString(newContent)
 	

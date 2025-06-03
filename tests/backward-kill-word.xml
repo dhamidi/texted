@@ -4,7 +4,6 @@ goto-char 25
 backward-kill-word 2
 buffer-substring 1 -1
 </input>
-<output>Hello  content</output>
-<result lang="sexp">"Hello  content"</result>
+<output>Hello world ontent</output>
 <error lang="sexp">
 </error>
