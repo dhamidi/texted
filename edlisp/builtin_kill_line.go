@@ -25,20 +25,33 @@ func BuiltinKillLine(args []Value, buffer *Buffer) (Value, error) {
 		return NewString(""), nil
 	}
 	
-	// Kill multiple lines if count > 1
-	lineEnd := pos
-	for i := 0; i < count; i++ {
+	var startPos, lineEnd int
+	
+	if count == 1 {
+		// For single line kill, preserve cursor character and kill from after cursor
+		startPos = pos + 1
+		lineEnd = startPos
 		// Find end of current line
 		for lineEnd < len(content) && content[lineEnd] != '\n' {
 			lineEnd++
 		}
-		// Include the newline character if present and if we're killing multiple lines
-		if lineEnd < len(content) && content[lineEnd] == '\n' && (i < count-1 || count > 1) {
-			lineEnd++
+	} else {
+		// For multi-line kill, kill entire lines starting from cursor
+		startPos = pos
+		lineEnd = startPos
+		for i := 0; i < count; i++ {
+			// Find end of current line
+			for lineEnd < len(content) && content[lineEnd] != '\n' {
+				lineEnd++
+			}
+			// Include the newline character if present
+			if lineEnd < len(content) && content[lineEnd] == '\n' {
+				lineEnd++
+			}
 		}
 	}
 	
-	newContent := content[:pos] + content[lineEnd:]
+	newContent := content[:startPos] + content[lineEnd:]
 	buffer.content.Reset()
 	buffer.content.WriteString(newContent)
 	
