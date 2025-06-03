@@ -88,4 +88,3 @@ func writeOutput(w io.Writer, expressions []edlisp.Value, format string) error {
 	}
 	return writerInstance.Write(w, expressions)
 }
-

@@ -40,7 +40,7 @@ func (w *JSONWriter) WriteValue(writer io.Writer, value edlisp.Value) error {
 func (w *JSONWriter) valueToJSON(value edlisp.Value) (interface{}, error) {
 	switch v := value.(type) {
 	case *edlisp.List:
-		var jsonArray []interface{}
+		jsonArray := make([]interface{}, 0, len(v.Elements))
 		for _, element := range v.Elements {
 			jsonValue, err := w.valueToJSON(element)
 			if err != nil {
