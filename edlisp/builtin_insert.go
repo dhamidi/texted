@@ -477,3 +477,45 @@ func BuiltinRegionEnd(args []Value, buffer *Buffer) (Value, error) {
 	
 	return NewNumber(float64(end)), nil
 }
+
+// BuiltinForwardChar moves the point forward by the specified number of characters.
+func BuiltinForwardChar(args []Value, buffer *Buffer) (Value, error) {
+	var count int = 1
+	
+	if len(args) > 1 {
+		return nil, fmt.Errorf("forward-char expects at most 1 argument, got %d", len(args))
+	}
+	
+	if len(args) == 1 {
+		if !IsA(args[0], TheNumberKind) {
+			return nil, fmt.Errorf("forward-char expects a number argument")
+		}
+		count = int(args[0].(*Number).Value)
+	}
+	
+	content := buffer.String()
+	newPos := buffer.Point() + count
+	
+	if newPos < 1 {
+		newPos = 1
+	} else if newPos > len(content)+1 {
+		newPos = len(content) + 1
+	}
+	
+	buffer.SetPoint(newPos)
+	return NewString(""), nil
+}
+
+// BuiltinLength returns the length of a string.
+func BuiltinLength(args []Value, buffer *Buffer) (Value, error) {
+	if len(args) != 1 {
+		return nil, fmt.Errorf("length expects 1 argument, got %d", len(args))
+	}
+
+	if !IsA(args[0], TheStringKind) {
+		return nil, fmt.Errorf("length expects a string argument")
+	}
+
+	str := args[0].(*String)
+	return NewNumber(float64(len(str.Value))), nil
+}

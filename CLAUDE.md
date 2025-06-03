@@ -9,7 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Commands
 
 - **Build**: `go build`
-- **Test**: `go test ./...`
+- **Test**: `go test ./edlisp`
+- Integration tests: `go run ./cmd/texted test`
 - **Run**: `go run .`
 - **Format**: `go fmt ./...`
 - **Vet**: `go vet ./...`
@@ -95,3 +96,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `set-mark` - Set the mark at current point
 - `replace-region "text"` - Replace selected region
 - `replace-match "text"` - Replace last search match
+

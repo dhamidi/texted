@@ -152,6 +152,8 @@ func NewDefaultEnvironment() *Environment {
 	env.Functions["replace-region"] = BuiltinReplaceRegion
 	env.Functions["region-beginning"] = BuiltinRegionBeginning
 	env.Functions["region-end"] = BuiltinRegionEnd
+	env.Functions["forward-char"] = BuiltinForwardChar
+	env.Functions["length"] = BuiltinLength
 
 	return env
 }
