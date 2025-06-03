@@ -21,16 +21,18 @@ func BuiltinDeleteBackwardChar(args []Value, buffer *Buffer) (Value, error) {
 	content := buffer.String()
 	pos := buffer.Point() - 1 // Convert to 0-based
 	
+	// Delete count characters before the current position
+	endPos := pos
 	startPos := pos - count
 	if startPos < 0 {
 		startPos = 0
 	}
 	
-	if startPos >= pos {
+	if startPos >= endPos {
 		return NewString(""), nil
 	}
 	
-	newContent := content[:startPos] + content[pos:]
+	newContent := content[:startPos] + content[endPos:]
 	buffer.content.Reset()
 	buffer.content.WriteString(newContent)
 	

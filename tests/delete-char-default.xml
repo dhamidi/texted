@@ -4,7 +4,7 @@ goto-char 6
 delete-char
 buffer-substring 1 -1
 </input>
-<output>Hello orld</output>
-<result lang="sexp">"Hello orld"</result>
+<output>Helloworld</output>
+<result lang="sexp">"Helloworld"</result>
 <error lang="sexp">
 </error>

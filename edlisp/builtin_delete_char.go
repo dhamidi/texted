@@ -25,8 +25,8 @@ func BuiltinDeleteChar(args []Value, buffer *Buffer) (Value, error) {
 		return NewString(""), nil
 	}
 	
-	// Point position is used as 0-based index into string
-	startPos := pos // Start at the character AT the point position (0-based)
+	// Convert 1-based position to 0-based index
+	startPos := pos - 1
 	endPos := startPos + count
 	if endPos > len(content) {
 		endPos = len(content)
