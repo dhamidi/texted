@@ -1,0 +1,10 @@
+<buffer>Hello old world, this is a test.</buffer>
+<input lang="shell">
+search-forward "old"
+replace-match "new"
+buffer-substring 1 -1
+</input>
+<output>Hello new world, this is a test.</output>
+<result lang="sexp">"Hello new world, this is a test."</result>
+<error lang="sexp">
+</error>

@@ -1,0 +1,11 @@
+<buffer>Hello world, this is a test buffer.</buffer>
+<input lang="shell">
+goto-char 7
+mark-word
+region-beginning
+region-end
+</input>
+<output>Hello world, this is a test buffer.</output>
+<result lang="sexp">12</result>
+<error lang="sexp">
+</error>

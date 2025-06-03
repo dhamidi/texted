@@ -3,5 +3,6 @@
 insert "hello, world"
 </input>
 <output>hello, world</output>
+<result lang="sexp">""</result>
 <error lang="sexp">
 </error>

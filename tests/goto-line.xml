@@ -1,0 +1,15 @@
+<buffer>Line 1: First line of text
+Line 2: Second line of text  
+Line 3: Third line of text
+Line 4: Fourth line of text</buffer>
+<input lang="shell">
+goto-line 3
+line-number-at-pos
+</input>
+<output>Line 1: First line of text
+Line 2: Second line of text  
+Line 3: Third line of text
+Line 4: Fourth line of text</output>
+<result lang="sexp">3</result>
+<error lang="sexp">
+</error>

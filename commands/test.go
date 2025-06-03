@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 
@@ -25,8 +26,8 @@ func NewTestCommand() *cobra.Command {
 
 Tests can be run individually by specifying test files, or filtered using include patterns.
 Output verbosity can be controlled with flags.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runTests(args, include, verbose, quiet, failOnly)
+		Run: func(cmd *cobra.Command, args []string) {
+			runTests(args, include, verbose, quiet, failOnly)
 		},
 	}
 
@@ -39,14 +40,15 @@ Output verbosity can be controlled with flags.`,
 }
 
 // runTests executes the test runner
-func runTests(testFiles []string, includePatterns []string, verbose, quiet, failOnly bool) error {
+func runTests(testFiles []string, includePatterns []string, verbose, quiet, failOnly bool) {
 	var filesToTest []string
 
 	if len(testFiles) == 0 {
 		// Find all XML files in tests/ directory
 		matches, err := filepath.Glob("tests/*.xml")
 		if err != nil {
-			return fmt.Errorf("finding test files: %w", err)
+			fmt.Printf("Error finding test files: %v\n", err)
+			os.Exit(1)
 		}
 		filesToTest = matches
 	} else {
@@ -61,7 +63,8 @@ func runTests(testFiles []string, includePatterns []string, verbose, quiet, fail
 			for _, pattern := range includePatterns {
 				matched, err := regexp.MatchString(pattern, basename)
 				if err != nil {
-					return fmt.Errorf("invalid pattern %s: %w", pattern, err)
+					fmt.Printf("Error: invalid pattern %s: %v\n", pattern, err)
+					os.Exit(1)
 				}
 				if matched {
 					filtered = append(filtered, file)
@@ -74,7 +77,7 @@ func runTests(testFiles []string, includePatterns []string, verbose, quiet, fail
 
 	if len(filesToTest) == 0 {
 		fmt.Println("No test files found")
-		return nil
+		return
 	}
 
 	// Create test environment
@@ -107,10 +110,8 @@ func runTests(testFiles []string, includePatterns []string, verbose, quiet, fail
 	fmt.Printf("\nTests: %d passed, %d failed, %d total\n", passedTests, totalTests-passedTests, totalTests)
 
 	if passedTests < totalTests {
-		return fmt.Errorf("some tests failed")
+		os.Exit(1)
 	}
-
-	return nil
 }
 
 // printTestResult prints a single test result

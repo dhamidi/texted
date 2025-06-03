@@ -1,0 +1,10 @@
+<buffer>Hello world, this is a test buffer.</buffer>
+<input lang="shell">
+goto-char 7
+set-mark
+mark
+</input>
+<output>Hello world, this is a test buffer.</output>
+<result lang="sexp">7</result>
+<error lang="sexp">
+</error>

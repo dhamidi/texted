@@ -18,11 +18,18 @@ type TestCase struct {
 	Buffer string `xml:"buffer"`
 	Input  Input  `xml:"input"`
 	Output string `xml:"output"`
+	Result Result `xml:"result"`
 	Error  Error  `xml:"error"`
 }
 
 // Input represents the test input with language specification.
 type Input struct {
+	Lang string `xml:"lang,attr"`
+	Text string `xml:",chardata"`
+}
+
+// Result represents expected result value with language specification.
+type Result struct {
 	Lang string `xml:"lang,attr"`
 	Text string `xml:",chardata"`
 }
@@ -58,6 +65,7 @@ func ParseTestCase(r io.Reader) (*TestCase, error) {
 		Buffer  string    `xml:"buffer"`
 		Input   Input     `xml:"input"`
 		Output  string    `xml:"output"`
+		Result  Result    `xml:"result"`
 		Error   Error     `xml:"error"`
 	}
 	
@@ -70,6 +78,7 @@ func ParseTestCase(r io.Reader) (*TestCase, error) {
 		Buffer: wrapper.Buffer,
 		Input:  wrapper.Input,
 		Output: wrapper.Output,
+		Result: wrapper.Result,
 		Error:  wrapper.Error,
 	}, nil
 }
@@ -109,7 +118,7 @@ func RunTest(testCase *TestCase, env *edlisp.Environment) *TestResult {
 	}
 
 	// Execute the program
-	_, evalErr := edlisp.Eval(program, env, buffer)
+	evalResult, evalErr := edlisp.Eval(program, env, buffer)
 
 	// Check for expected error
 	expectedError := strings.TrimSpace(testCase.Error.Text)
@@ -143,6 +152,18 @@ func RunTest(testCase *TestCase, env *edlisp.Environment) *TestResult {
 		return result
 	}
 
+	// Check result if specified
+	expectedResult := strings.TrimSpace(testCase.Result.Text)
+	if expectedResult != "" {
+		actualResult := formatValue(evalResult)
+		if expectedResult != actualResult {
+			result.Expected = expectedResult
+			result.Actual = actualResult
+			result.Error = fmt.Errorf("result mismatch:\nexpected: %q\nactual: %q", expectedResult, actualResult)
+			return result
+		}
+	}
+
 	result.Passed = true
 	return result
 }
@@ -160,6 +181,38 @@ func RunTestFile(filename string, env *edlisp.Environment) *TestResult {
 	result := RunTest(testCase, env)
 	result.Name = filepath.Base(filename)
 	return result
+}
+
+// formatValue converts an edlisp.Value to its string representation for comparison.
+func formatValue(value edlisp.Value) string {
+	if value == nil {
+		return "nil"
+	}
+	
+	switch {
+	case edlisp.IsA(value, edlisp.TheStringKind):
+		str := value.(*edlisp.String)
+		return fmt.Sprintf(`"%s"`, str.Value)
+	case edlisp.IsA(value, edlisp.TheNumberKind):
+		num := value.(*edlisp.Number)
+		// Format as integer if it's a whole number
+		if num.Value == float64(int(num.Value)) {
+			return fmt.Sprintf("%d", int(num.Value))
+		}
+		return fmt.Sprintf("%g", num.Value)
+	case edlisp.IsA(value, edlisp.TheSymbolKind):
+		sym := value.(*edlisp.Symbol)
+		return sym.Name
+	case edlisp.IsA(value, edlisp.TheListKind):
+		list := value.(*edlisp.List)
+		var parts []string
+		for i := 0; i < list.Len(); i++ {
+			parts = append(parts, formatValue(list.Get(i)))
+		}
+		return fmt.Sprintf("(%s)", strings.Join(parts, " "))
+	default:
+		return fmt.Sprintf("%v", value)
+	}
 }
 
 // NewDefaultEnvironment creates a default testing environment with basic functions.

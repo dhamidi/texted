@@ -1,0 +1,13 @@
+<buffer>The function foo123 is defined here.
+Another function bar456 is also present.
+And finally baz789 completes the set.</buffer>
+<input lang="shell">
+re-search-forward "[a-z]+[0-9]+"
+point
+</input>
+<output>The function foo123 is defined here.
+Another function bar456 is also present.
+And finally baz789 completes the set.</output>
+<result lang="sexp">19</result>
+<error lang="sexp">
+</error>
