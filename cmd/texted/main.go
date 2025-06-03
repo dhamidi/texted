@@ -15,8 +15,9 @@ func main() {
 		Long:  "Texted is a scriptable, headless text editor for automated file editing. It processes scripts written in shell-like syntax, S-expressions, or JSON format to perform text transformations.",
 	}
 
-	// Add the parse subcommand
+	// Add subcommands
 	rootCmd.AddCommand(commands.NewParseCommand())
+	rootCmd.AddCommand(commands.NewTestCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

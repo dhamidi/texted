@@ -1,0 +1,11 @@
+<buffer></buffer>
+<input lang="shell">
+insert "hello, w"
+insert "orld"
+insert "\n"
+insert "."
+</input>
+<output>hello, world
+.</output>
+<error lang="sexp">
+</error>

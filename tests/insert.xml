@@ -1,0 +1,7 @@
+<buffer></buffer>
+<input lang="shell">
+insert "hello, world"
+</input>
+<output>hello, world</output>
+<error lang="sexp">
+</error>

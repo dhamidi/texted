@@ -1,0 +1,9 @@
+<buffer></buffer>
+<input lang="shell">
+[
+</input>
+<output>
+</output>
+<error lang="sexp">
+(undefined-function "[")
+</error>
