@@ -13,6 +13,16 @@ import (
 	"github.com/dhamidi/texted/edlisp/testing"
 )
 
+// runTestsArgs holds the arguments for the runTests function
+type runTestsArgs struct {
+	testFiles       []string
+	includePatterns []string
+	verbose         bool
+	quiet           bool
+	failOnly        bool
+	trace           bool
+}
+
 // NewTestCommand creates the test subcommand
 func NewTestCommand() *cobra.Command {
 	var verbose bool
@@ -29,7 +39,14 @@ func NewTestCommand() *cobra.Command {
 Tests can be run individually by specifying test files, or filtered using include patterns.
 Output verbosity can be controlled with flags.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			runTests(args, include, verbose, quiet, failOnly, trace)
+			runTests(&runTestsArgs{
+				testFiles:       args,
+				includePatterns: include,
+				verbose:         verbose,
+				quiet:           quiet,
+				failOnly:        failOnly,
+				trace:           trace,
+			})
 		},
 	}
 
@@ -43,10 +60,10 @@ Output verbosity can be controlled with flags.`,
 }
 
 // runTests executes the test runner
-func runTests(testFiles []string, includePatterns []string, verbose, quiet, failOnly, trace bool) {
+func runTests(args *runTestsArgs) {
 	var filesToTest []string
 
-	if len(testFiles) == 0 {
+	if len(args.testFiles) == 0 {
 		// Find all XML files in tests/ directory
 		matches, err := filepath.Glob("tests/*.xml")
 		if err != nil {
@@ -55,15 +72,15 @@ func runTests(testFiles []string, includePatterns []string, verbose, quiet, fail
 		}
 		filesToTest = matches
 	} else {
-		filesToTest = testFiles
+		filesToTest = args.testFiles
 	}
 
 	// Filter by include patterns if specified
-	if len(includePatterns) > 0 {
+	if len(args.includePatterns) > 0 {
 		filtered := make([]string, 0)
 		for _, file := range filesToTest {
 			basename := filepath.Base(file)
-			for _, pattern := range includePatterns {
+			for _, pattern := range args.includePatterns {
 				matched, err := regexp.MatchString(pattern, basename)
 				if err != nil {
 					fmt.Printf("Error: invalid pattern %s: %v\n", pattern, err)
@@ -92,7 +109,7 @@ func runTests(testFiles []string, includePatterns []string, verbose, quiet, fail
 
 	for _, testFile := range filesToTest {
 		var result *testing.TestResult
-		if trace {
+		if args.trace {
 			traceCallback := createTraceCallback()
 			result = testing.RunTestFileWithTrace(testFile, env, traceCallback)
 		} else {
@@ -106,12 +123,12 @@ func runTests(testFiles []string, includePatterns []string, verbose, quiet, fail
 	}
 
 	// Output results based on flags
-	if !quiet {
+	if !args.quiet {
 		for _, result := range results {
-			if failOnly && result.Passed {
+			if args.failOnly && result.Passed {
 				continue
 			}
-			printTestResult(result, verbose)
+			printTestResult(result, args.verbose)
 		}
 	}
 

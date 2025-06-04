@@ -14,6 +14,100 @@ import (
 	"github.com/dhamidi/texted/edlisp/writer"
 )
 
+// runEditArgs holds the arguments for the runEdit function
+type runEditArgs struct {
+	cmd          *cobra.Command
+	scriptFormat string
+	scriptFile   string
+	inPlace      bool
+	outputFile   string
+	backupSuffix string
+	verbose      bool
+	quiet        bool
+	dryRun       bool
+	shell        bool
+	sexp         bool
+	json         bool
+	outputFormat string
+	files        []string
+}
+
+// runExpressionsArgs holds the arguments for the runExpressions function
+type runExpressionsArgs struct {
+	expressions  []string
+	scriptFormat string
+	outputFormat string
+	verbose      bool
+	quiet        bool
+	files        []string
+}
+
+// evaluateExpressionsOnContentArgs holds the arguments for the evaluateExpressionsOnContent function
+type evaluateExpressionsOnContentArgs struct {
+	expressions  []string
+	scriptFormat string
+	outputFormat string
+	verbose      bool
+	quiet        bool
+	content      string
+	source       string
+}
+
+// processStdinArgs holds the arguments for the processStdin function
+type processStdinArgs struct {
+	script       string
+	scriptFormat string
+	outputFile   string
+	verbose      bool
+	quiet        bool
+	dryRun       bool
+}
+
+// processFilesArgs holds the arguments for the processFiles function
+type processFilesArgs struct {
+	files        []string
+	script       string
+	scriptFormat string
+	inPlace      bool
+	outputFile   string
+	backupSuffix string
+	verbose      bool
+	quiet        bool
+	dryRun       bool
+}
+
+// processSingleFileToOutputArgs holds the arguments for the processSingleFileToOutput function
+type processSingleFileToOutputArgs struct {
+	filename     string
+	script       string
+	scriptFormat string
+	outputFile   string
+	verbose      bool
+	quiet        bool
+	dryRun       bool
+}
+
+// processSingleFileToStdoutArgs holds the arguments for the processSingleFileToStdout function
+type processSingleFileToStdoutArgs struct {
+	filename     string
+	script       string
+	scriptFormat string
+	verbose      bool
+	quiet        bool
+	dryRun       bool
+}
+
+// processFilesInPlaceArgs holds the arguments for the processFilesInPlace function
+type processFilesInPlaceArgs struct {
+	files        []string
+	script       string
+	scriptFormat string
+	backupSuffix string
+	verbose      bool
+	quiet        bool
+	dryRun       bool
+}
+
 // NewEditCommand creates the edit subcommand.
 func NewEditCommand() *cobra.Command {
 	var (
@@ -44,7 +138,22 @@ Script formats:
   sexp:   S-expression syntax (e.g., "(search-forward \"hello\")")
   json:   JSON array syntax (e.g., ["search-forward", "hello"])`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runEdit(cmd, scriptFormat, scriptFile, inPlace, outputFile, backupSuffix, verbose, quiet, dryRun, shell, sexp, json, outputFormat, args)
+			return runEdit(&runEditArgs{
+				cmd:          cmd,
+				scriptFormat: scriptFormat,
+				scriptFile:   scriptFile,
+				inPlace:      inPlace,
+				outputFile:   outputFile,
+				backupSuffix: backupSuffix,
+				verbose:      verbose,
+				quiet:        quiet,
+				dryRun:       dryRun,
+				shell:        shell,
+				sexp:         sexp,
+				json:         json,
+				outputFormat: outputFormat,
+				files:        args,
+			})
 		},
 	}
 
@@ -74,54 +183,61 @@ Script formats:
 }
 
 // runEdit handles the edit command execution.
-func runEdit(cmd *cobra.Command, scriptFormat, scriptFile string, inPlace bool, outputFile, backupSuffix string, verbose, quiet, dryRun, shell, sexp, json bool, outputFormat string, files []string) error {
+func runEdit(args *runEditArgs) error {
 	// Handle format shorthand flags
-	if shell {
-		scriptFormat = "shell"
-	} else if sexp {
-		scriptFormat = "sexp"
-	} else if json {
-		scriptFormat = "json"
+	if args.shell {
+		args.scriptFormat = "shell"
+	} else if args.sexp {
+		args.scriptFormat = "sexp"
+	} else if args.json {
+		args.scriptFormat = "json"
 	}
 
 	// Validate format
-	if !texted.IsValidFormat(scriptFormat) {
-		return fmt.Errorf("invalid script format: %s (must be shell, sexp, or json)", scriptFormat)
+	if !texted.IsValidFormat(args.scriptFormat) {
+		return fmt.Errorf("invalid script format: %s (must be shell, sexp, or json)", args.scriptFormat)
 	}
 
 	// Validate flag combinations
-	if outputFile != "" && len(files) > 1 {
+	if args.outputFile != "" && len(args.files) > 1 {
 		return fmt.Errorf("--output can only be used with a single file")
 	}
-	if backupSuffix != "" && !inPlace {
+	if args.backupSuffix != "" && !args.inPlace {
 		return fmt.Errorf("--backup can only be used with --in-place")
 	}
-	if outputFile != "" && inPlace {
+	if args.outputFile != "" && args.inPlace {
 		return fmt.Errorf("--output and --in-place cannot be used together")
 	}
 
 	// Handle expressions
-	expressions, err := cmd.Flags().GetStringSlice("expression")
+	expressions, err := args.cmd.Flags().GetStringSlice("expression")
 	if err != nil {
 		return fmt.Errorf("getting expression flag: %w", err)
 	}
 
 	if len(expressions) > 0 {
-		return runExpressions(expressions, scriptFormat, outputFormat, verbose, quiet, files)
+		return runExpressions(&runExpressionsArgs{
+			expressions:  expressions,
+			scriptFormat: args.scriptFormat,
+			outputFormat: args.outputFormat,
+			verbose:      args.verbose,
+			quiet:        args.quiet,
+			files:        args.files,
+		})
 	}
 
 	// Get script content
 	var script string
 
-	if scriptFile != "" {
-		content, err := os.ReadFile(scriptFile)
+	if args.scriptFile != "" {
+		content, err := os.ReadFile(args.scriptFile)
 		if err != nil {
 			return fmt.Errorf("reading script file: %w", err)
 		}
 		script = string(content)
 	} else {
 		// Get script from --script flag
-		script, err = cmd.Flags().GetString("script")
+		script, err = args.cmd.Flags().GetString("script")
 		if err != nil {
 			return fmt.Errorf("getting script flag: %w", err)
 		}
@@ -131,40 +247,73 @@ func runEdit(cmd *cobra.Command, scriptFormat, scriptFile string, inPlace bool, 
 	}
 
 	// If no files specified, process stdin to stdout
-	if len(files) == 0 {
-		return processStdin(script, scriptFormat, outputFile, verbose, quiet, dryRun)
+	if len(args.files) == 0 {
+		return processStdin(&processStdinArgs{
+			script:       script,
+			scriptFormat: args.scriptFormat,
+			outputFile:   args.outputFile,
+			verbose:      args.verbose,
+			quiet:        args.quiet,
+			dryRun:       args.dryRun,
+		})
 	}
 
 	// Process files
-	return processFiles(files, script, scriptFormat, inPlace, outputFile, backupSuffix, verbose, quiet, dryRun)
+	return processFiles(&processFilesArgs{
+		files:        args.files,
+		script:       script,
+		scriptFormat: args.scriptFormat,
+		inPlace:      args.inPlace,
+		outputFile:   args.outputFile,
+		backupSuffix: args.backupSuffix,
+		verbose:      args.verbose,
+		quiet:        args.quiet,
+		dryRun:       args.dryRun,
+	})
 }
 
 // runExpressions handles the --expression flag by evaluating expressions and printing results
-func runExpressions(expressions []string, scriptFormat string, outputFormat string, verbose, quiet bool, files []string) error {
+func runExpressions(args *runExpressionsArgs) error {
 	// If no files specified, read from stdin
-	if len(files) == 0 {
+	if len(args.files) == 0 {
 		content, err := io.ReadAll(os.Stdin)
 		if err != nil {
 			return fmt.Errorf("reading stdin: %w", err)
 		}
-		return evaluateExpressionsOnContent(expressions, scriptFormat, outputFormat, verbose, quiet, string(content), "stdin")
+		return evaluateExpressionsOnContent(&evaluateExpressionsOnContentArgs{
+			expressions:  args.expressions,
+			scriptFormat: args.scriptFormat,
+			outputFormat: args.outputFormat,
+			verbose:      args.verbose,
+			quiet:        args.quiet,
+			content:      string(content),
+			source:       "stdin",
+		})
 	}
 
 	// If multiple files, evaluate expressions on each file
-	for _, filename := range files {
+	for _, filename := range args.files {
 		content, err := os.ReadFile(filename)
 		if err != nil {
-			if !quiet {
+			if !args.quiet {
 				fmt.Printf("Error reading %s: %v\n", filename, err)
 			}
 			return fmt.Errorf("reading %s: %w", filename, err)
 		}
 
-		if len(files) > 1 && !quiet {
+		if len(args.files) > 1 && !args.quiet {
 			fmt.Printf("=== %s ===\n", filename)
 		}
 
-		err = evaluateExpressionsOnContent(expressions, scriptFormat, outputFormat, verbose, quiet, string(content), filename)
+		err = evaluateExpressionsOnContent(&evaluateExpressionsOnContentArgs{
+			expressions:  args.expressions,
+			scriptFormat: args.scriptFormat,
+			outputFormat: args.outputFormat,
+			verbose:      args.verbose,
+			quiet:        args.quiet,
+			content:      string(content),
+			source:       filename,
+		})
 		if err != nil {
 			return err
 		}
@@ -173,30 +322,30 @@ func runExpressions(expressions []string, scriptFormat string, outputFormat stri
 }
 
 // evaluateExpressionsOnContent evaluates expressions on the given content
-func evaluateExpressionsOnContent(expressions []string, scriptFormat string, outputFormat string, verbose, quiet bool, content, source string) error {
-	buffer := edlisp.NewBuffer(content)
+func evaluateExpressionsOnContent(args *evaluateExpressionsOnContentArgs) error {
+	buffer := edlisp.NewBuffer(args.content)
 	env := edlisp.NewDefaultEnvironment()
 
-	for i, expr := range expressions {
-		if verbose && !quiet {
-			fmt.Printf("Evaluating expression %d on %s: %s\n", i+1, source, expr)
+	for i, expr := range args.expressions {
+		if args.verbose && !args.quiet {
+			fmt.Printf("Evaluating expression %d on %s: %s\n", i+1, args.source, expr)
 		}
 
 		// Parse the expression based on format
 		var program []edlisp.Value
 		var err error
 
-		switch scriptFormat {
+		switch args.scriptFormat {
 		case "shell", "sexp":
 			program, err = parser.ParseString(expr)
 		case "json":
 			program, err = parser.ParseJSONString(expr)
 		default:
-			return fmt.Errorf("unsupported script format: %s", scriptFormat)
+			return fmt.Errorf("unsupported script format: %s", args.scriptFormat)
 		}
 
 		if err != nil {
-			if !quiet {
+			if !args.quiet {
 				fmt.Printf("Error parsing expression %d: %v\n", i+1, err)
 			}
 			return fmt.Errorf("parsing expression: %w", err)
@@ -205,16 +354,16 @@ func evaluateExpressionsOnContent(expressions []string, scriptFormat string, out
 		// Execute the expression and get the result value (not buffer content)
 		result, err := edlisp.Eval(program, env, buffer)
 		if err != nil {
-			if !quiet {
+			if !args.quiet {
 				fmt.Printf("Error in expression %d: %v\n", i+1, err)
 			}
 			return err
 		}
 
-		if !quiet {
+		if !args.quiet {
 			// Convert the result value to string representation using specified format
 			var writerFormat writer.Format
-			switch outputFormat {
+			switch args.outputFormat {
 			case "shell":
 				writerFormat = writer.FormatShell
 			case "sexp":
@@ -222,7 +371,7 @@ func evaluateExpressionsOnContent(expressions []string, scriptFormat string, out
 			case "json":
 				writerFormat = writer.FormatJSON
 			default:
-				return fmt.Errorf("invalid output format: %s (must be shell, sexp, or json)", outputFormat)
+				return fmt.Errorf("invalid output format: %s (must be shell, sexp, or json)", args.outputFormat)
 			}
 
 			w, err := writer.NewWriter(writerFormat)
@@ -233,7 +382,7 @@ func evaluateExpressionsOnContent(expressions []string, scriptFormat string, out
 			var buf strings.Builder
 
 			// For shell format, wrap the result in a list since shell writer expects lists
-			if outputFormat == "shell" {
+			if args.outputFormat == "shell" {
 				list := edlisp.NewList(result)
 				err = w.WriteValue(&buf, list)
 			} else {
@@ -251,33 +400,33 @@ func evaluateExpressionsOnContent(expressions []string, scriptFormat string, out
 }
 
 // processStdin handles processing stdin to stdout or output file
-func processStdin(script, scriptFormat, outputFile string, verbose, quiet, dryRun bool) error {
+func processStdin(args *processStdinArgs) error {
 	content, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return fmt.Errorf("reading stdin: %w", err)
 	}
 
-	if verbose && !quiet {
-		fmt.Printf("Processing stdin with script in %s format\n", scriptFormat)
+	if args.verbose && !args.quiet {
+		fmt.Printf("Processing stdin with script in %s format\n", args.scriptFormat)
 	}
 
-	if dryRun {
-		if !quiet {
+	if args.dryRun {
+		if !args.quiet {
 			fmt.Printf("Would process %d bytes from stdin\n", len(content))
 		}
 		return nil
 	}
 
-	result, err := texted.ExecuteScriptWithFormat(string(content), script, scriptFormat)
+	result, err := texted.ExecuteScriptWithFormat(string(content), args.script, args.scriptFormat)
 	if err != nil {
 		return err
 	}
 
-	if outputFile != "" {
-		if verbose && !quiet {
-			fmt.Printf("Writing output to %s\n", outputFile)
+	if args.outputFile != "" {
+		if args.verbose && !args.quiet {
+			fmt.Printf("Writing output to %s\n", args.outputFile)
 		}
-		return os.WriteFile(outputFile, []byte(result), 0644)
+		return os.WriteFile(args.outputFile, []byte(result), 0644)
 	}
 
 	_, err = os.Stdout.WriteString(result)
@@ -285,71 +434,94 @@ func processStdin(script, scriptFormat, outputFile string, verbose, quiet, dryRu
 }
 
 // processFiles handles processing one or more files
-func processFiles(files []string, script, scriptFormat string, inPlace bool, outputFile, backupSuffix string, verbose, quiet, dryRun bool) error {
-	if len(files) == 1 && outputFile != "" {
+func processFiles(args *processFilesArgs) error {
+	if len(args.files) == 1 && args.outputFile != "" {
 		// Single file with output redirection
-		return processSingleFileToOutput(files[0], script, scriptFormat, outputFile, verbose, quiet, dryRun)
+		return processSingleFileToOutput(&processSingleFileToOutputArgs{
+			filename:     args.files[0],
+			script:       args.script,
+			scriptFormat: args.scriptFormat,
+			outputFile:   args.outputFile,
+			verbose:      args.verbose,
+			quiet:        args.quiet,
+			dryRun:       args.dryRun,
+		})
 	}
 
-	if !inPlace && outputFile == "" {
+	if !args.inPlace && args.outputFile == "" {
 		// Default behavior: output to stdout (for single file) or error for multiple
-		if len(files) == 1 {
-			return processSingleFileToStdout(files[0], script, scriptFormat, verbose, quiet, dryRun)
+		if len(args.files) == 1 {
+			return processSingleFileToStdout(&processSingleFileToStdoutArgs{
+				filename:     args.files[0],
+				script:       args.script,
+				scriptFormat: args.scriptFormat,
+				verbose:      args.verbose,
+				quiet:        args.quiet,
+				dryRun:       args.dryRun,
+			})
 		}
 		return fmt.Errorf("multiple files require --in-place or --output flag")
 	}
 
 	// In-place editing
-	return processFilesInPlace(files, script, scriptFormat, backupSuffix, verbose, quiet, dryRun)
+	return processFilesInPlace(&processFilesInPlaceArgs{
+		files:        args.files,
+		script:       args.script,
+		scriptFormat: args.scriptFormat,
+		backupSuffix: args.backupSuffix,
+		verbose:      args.verbose,
+		quiet:        args.quiet,
+		dryRun:       args.dryRun,
+	})
 }
 
 // processSingleFileToOutput processes a single file and writes to specified output
-func processSingleFileToOutput(filename, script, scriptFormat, outputFile string, verbose, quiet, dryRun bool) error {
-	if verbose && !quiet {
-		fmt.Printf("Processing %s -> %s\n", filename, outputFile)
+func processSingleFileToOutput(args *processSingleFileToOutputArgs) error {
+	if args.verbose && !args.quiet {
+		fmt.Printf("Processing %s -> %s\n", args.filename, args.outputFile)
 	}
 
-	if dryRun {
-		if !quiet {
-			fmt.Printf("Would process %s and write to %s\n", filename, outputFile)
+	if args.dryRun {
+		if !args.quiet {
+			fmt.Printf("Would process %s and write to %s\n", args.filename, args.outputFile)
 		}
 		return nil
 	}
 
-	content, err := os.ReadFile(filename)
+	content, err := os.ReadFile(args.filename)
 	if err != nil {
-		return fmt.Errorf("reading %s: %w", filename, err)
+		return fmt.Errorf("reading %s: %w", args.filename, err)
 	}
 
-	result, err := texted.ExecuteScriptWithFormat(string(content), script, scriptFormat)
+	result, err := texted.ExecuteScriptWithFormat(string(content), args.script, args.scriptFormat)
 	if err != nil {
-		return fmt.Errorf("processing %s: %w", filename, err)
+		return fmt.Errorf("processing %s: %w", args.filename, err)
 	}
 
-	return os.WriteFile(outputFile, []byte(result), 0644)
+	return os.WriteFile(args.outputFile, []byte(result), 0644)
 }
 
 // processSingleFileToStdout processes a single file and writes to stdout
-func processSingleFileToStdout(filename, script, scriptFormat string, verbose, quiet, dryRun bool) error {
-	if verbose && !quiet {
-		fmt.Printf("Processing %s -> stdout\n", filename)
+func processSingleFileToStdout(args *processSingleFileToStdoutArgs) error {
+	if args.verbose && !args.quiet {
+		fmt.Printf("Processing %s -> stdout\n", args.filename)
 	}
 
-	if dryRun {
-		if !quiet {
-			fmt.Printf("Would process %s and write to stdout\n", filename)
+	if args.dryRun {
+		if !args.quiet {
+			fmt.Printf("Would process %s and write to stdout\n", args.filename)
 		}
 		return nil
 	}
 
-	content, err := os.ReadFile(filename)
+	content, err := os.ReadFile(args.filename)
 	if err != nil {
-		return fmt.Errorf("reading %s: %w", filename, err)
+		return fmt.Errorf("reading %s: %w", args.filename, err)
 	}
 
-	result, err := texted.ExecuteScriptWithFormat(string(content), script, scriptFormat)
+	result, err := texted.ExecuteScriptWithFormat(string(content), args.script, args.scriptFormat)
 	if err != nil {
-		return fmt.Errorf("processing %s: %w", filename, err)
+		return fmt.Errorf("processing %s: %w", args.filename, err)
 	}
 
 	_, err = os.Stdout.WriteString(result)
@@ -357,18 +529,18 @@ func processSingleFileToStdout(filename, script, scriptFormat string, verbose, q
 }
 
 // processFilesInPlace processes files in place with optional backup
-func processFilesInPlace(files []string, script, scriptFormat, backupSuffix string, verbose, quiet, dryRun bool) error {
+func processFilesInPlace(args *processFilesInPlaceArgs) error {
 	hasErrors := false
-	for _, filename := range files {
-		if verbose && !quiet {
+	for _, filename := range args.files {
+		if args.verbose && !args.quiet {
 			fmt.Printf("Processing %s in place\n", filename)
 		}
 
-		if dryRun {
-			if !quiet {
+		if args.dryRun {
+			if !args.quiet {
 				fmt.Printf("Would edit %s in place", filename)
-				if backupSuffix != "" {
-					fmt.Printf(" (backup to %s%s)", filename, backupSuffix)
+				if args.backupSuffix != "" {
+					fmt.Printf(" (backup to %s%s)", filename, args.backupSuffix)
 				}
 				fmt.Println()
 			}
@@ -376,15 +548,15 @@ func processFilesInPlace(files []string, script, scriptFormat, backupSuffix stri
 		}
 
 		// Create backup if requested
-		if backupSuffix != "" {
-			backupFile := filename + backupSuffix
-			if verbose && !quiet {
+		if args.backupSuffix != "" {
+			backupFile := filename + args.backupSuffix
+			if args.verbose && !args.quiet {
 				fmt.Printf("Creating backup %s\n", backupFile)
 			}
 
 			content, err := os.ReadFile(filename)
 			if err != nil {
-				if !quiet {
+				if !args.quiet {
 					fmt.Printf("✗ Failed to read %s for backup: %v\n", filename, err)
 				}
 				hasErrors = true
@@ -392,7 +564,7 @@ func processFilesInPlace(files []string, script, scriptFormat, backupSuffix stri
 			}
 
 			if err := os.WriteFile(backupFile, content, 0644); err != nil {
-				if !quiet {
+				if !args.quiet {
 					fmt.Printf("✗ Failed to create backup %s: %v\n", backupFile, err)
 				}
 				hasErrors = true
@@ -403,16 +575,16 @@ func processFilesInPlace(files []string, script, scriptFormat, backupSuffix stri
 		// Process the file
 		content, err := os.ReadFile(filename)
 		if err != nil {
-			if !quiet {
+			if !args.quiet {
 				fmt.Printf("✗ Failed to read %s: %v\n", filename, err)
 			}
 			hasErrors = true
 			continue
 		}
 
-		result, err := texted.ExecuteScriptWithFormat(string(content), script, scriptFormat)
+		result, err := texted.ExecuteScriptWithFormat(string(content), args.script, args.scriptFormat)
 		if err != nil {
-			if !quiet {
+			if !args.quiet {
 				fmt.Printf("✗ Failed to process %s: %v\n", filename, err)
 			}
 			hasErrors = true
@@ -420,14 +592,14 @@ func processFilesInPlace(files []string, script, scriptFormat, backupSuffix stri
 		}
 
 		if err := os.WriteFile(filename, []byte(result), 0644); err != nil {
-			if !quiet {
+			if !args.quiet {
 				fmt.Printf("✗ Failed to write %s: %v\n", filename, err)
 			}
 			hasErrors = true
 			continue
 		}
 
-		if !quiet {
+		if !args.quiet {
 			fmt.Printf("✓ Successfully edited %s\n", filename)
 		}
 	}

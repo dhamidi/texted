@@ -12,6 +12,12 @@ import (
 	"github.com/dhamidi/texted/edlisp/writer"
 )
 
+// runParseArgs holds the arguments for the runParse function
+type runParseArgs struct {
+	inputFormat  string
+	outputFormat string
+}
+
 // NewParseCommand creates the parse subcommand.
 func NewParseCommand() *cobra.Command {
 	var inputFormat string
@@ -26,7 +32,10 @@ Reads a script from stdin in the specified input format and writes the parsed
 version to stdout in the specified output format. This is useful for converting 
 between shell-like syntax, S-expressions, and JSON formats.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runParse(inputFormat, outputFormat)
+			return runParse(&runParseArgs{
+				inputFormat:  inputFormat,
+				outputFormat: outputFormat,
+			})
 		},
 	}
 
@@ -37,23 +46,23 @@ between shell-like syntax, S-expressions, and JSON formats.`,
 }
 
 // runParse handles the parse command execution.
-func runParse(inputFormat, outputFormat string) error {
+func runParse(args *runParseArgs) error {
 	// Validate formats
-	if !isValidFormat(inputFormat) {
-		return fmt.Errorf("invalid input format: %s (must be shell, sexp, or json)", inputFormat)
+	if !isValidFormat(args.inputFormat) {
+		return fmt.Errorf("invalid input format: %s (must be shell, sexp, or json)", args.inputFormat)
 	}
-	if !isValidFormat(outputFormat) {
-		return fmt.Errorf("invalid output format: %s (must be shell, sexp, or json)", outputFormat)
+	if !isValidFormat(args.outputFormat) {
+		return fmt.Errorf("invalid output format: %s (must be shell, sexp, or json)", args.outputFormat)
 	}
 
 	// Parse input from stdin
-	expressions, err := parseInput(os.Stdin, inputFormat)
+	expressions, err := parseInput(os.Stdin, args.inputFormat)
 	if err != nil {
 		return fmt.Errorf("parsing input: %w", err)
 	}
 
 	// Convert to output format and write to stdout
-	return writeOutput(os.Stdout, expressions, outputFormat)
+	return writeOutput(os.Stdout, expressions, args.outputFormat)
 }
 
 // isValidFormat checks if a format string is valid.
