@@ -1,0 +1,133 @@
+Transform input text using texted scripts with flexible output options. Perfect for testing scripts before applying them to files, processing text snippets, or extracting specific values from text transformations.
+
+Execute texted scripts on input text and return either the transformed buffer contents or the result of the last evaluated expression.
+
+SYNTAX FORMATS
+==============
+texted supports three interchangeable syntax formats that produce identical results:
+
+1. SHELL-LIKE SYNTAX (Default and Recommended)
+   Clean, readable command-line style:
+   search-forward "pattern"
+   replace-match "replacement"
+   goto-line 5; insert "// Comment\n"
+
+2. S-EXPRESSION SYNTAX
+   Traditional Lisp style:
+   (search-forward "pattern")
+   (replace-match "replacement")
+
+3. JSON ARRAY SYNTAX
+   Machine-friendly format:
+   ["search-forward", "pattern"]
+   ["replace-match", "replacement"]
+
+OUTPUT MODES
+============
+The tool supports two output modes controlled by the 'output' parameter:
+
+1. BUFFER MODE (Default: output="buffer")
+   Returns the final transformed text content of the buffer.
+   Use this for typical text transformation workflows where you want the modified text.
+   Example: input "hello world", script 'search-forward "world"; replace-match "universe"' 
+   → returns "hello universe"
+
+2. EXPRESSION MODE (output="expression") 
+   Returns the result value of the last evaluated expression as a formatted string.
+   Use this to extract specific computed values, search results, or function returns.
+   Example: input "hello world", script 'search-forward "world"; point'
+   → returns the position where "world" was found (as a number)
+
+BUFFER MODEL
+============
+- Buffer contains UTF-8 text with 1-based indexing (position 1 = before first character)
+- Point: current cursor position (like Emacs point)
+- Mark: secondary position that forms a "region" with point for selections
+- All positions are automatically clamped to valid buffer bounds
+- Invalid operations fail gracefully without corrupting buffer state
+
+TOP 10 ESSENTIAL FUNCTIONS FOR TEXT PROCESSING
+==============================================
+
+1. search-forward "pattern"
+   Find text moving forward from current point. Sets match info for replace-match.
+   Example: search-forward "TODO"
+
+2. replace-match "replacement"
+   Replace the last successful search match with new text.
+   Example: search-forward "v1.0"; replace-match "v2.0"
+
+3. re-search-forward "regexp"
+   Regex search forward. More powerful than literal search-forward.
+   Example: re-search-forward "func\s+\w+"
+
+4. mark-whole-buffer
+   Select entire buffer content (sets mark at beginning, point at end).
+   Example: mark-whole-buffer; replace-region "NEW CONTENT"
+
+5. replace-region "text"
+   Replace all text between mark and point with new text.
+   Example: mark-word; replace-region "newword"
+
+6. point
+   Get current cursor position (useful with expression output mode).
+   Example: search-forward "target"; point
+
+7. buffer-substring start end
+   Extract text between two positions (useful with expression output mode).
+   Example: buffer-substring 1 10
+
+8. insert "text"
+   Insert text at current point position.
+   Example: goto-line 1; insert "Header\n"
+
+9. upcase "text" / downcase "text"
+   Transform text case (useful with expression output mode).
+   Example: upcase "hello" → returns "HELLO"
+
+10. concat "str1" "str2" ...
+    Concatenate multiple strings (useful with expression output mode).
+    Example: concat "Hello " "World" → returns "Hello World"
+
+COMMON WORKFLOW PATTERNS
+========================
+
+Text Transformation (Buffer Mode):
+input: "old function name"
+script: search-forward "old"; replace-match "new"
+output: "buffer" → "new function name"
+
+Value Extraction (Expression Mode):  
+input: "The answer is 42"
+script: re-search-forward "\\d+"; buffer-substring (match-beginning) (match-end)
+output: "expression" → "42"
+
+Position Finding (Expression Mode):
+input: "line1\nline2\nline3"
+script: search-forward "line2"; line-number-at-pos (point)
+output: "expression" → 2
+
+Text Analysis (Expression Mode):
+input: "hello world test"
+script: mark-whole-buffer; length (buffer-substring (region-beginning) (region-end))
+output: "expression" → 16
+
+TESTING SCRIPTS SAFELY
+=======================
+This tool is perfect for testing scripts before applying them to files:
+- Test complex transformations on sample text
+- Verify regex patterns work correctly
+- Extract specific values or positions from text
+- Debug multi-step operations step by step
+
+Use in combination with the 'edit_file' tool:
+1. Test your script with texted_eval on sample text
+2. Once satisfied, apply the same script to files with edit_file
+
+ERROR HANDLING
+==============
+- Failed searches leave point unchanged and return appropriate error messages
+- Invalid positions are clamped to buffer bounds  
+- Malformed regexes fall back to literal string matching where possible
+- Invalid function calls return descriptive error messages
+- Both output modes handle errors gracefully with informative messages
