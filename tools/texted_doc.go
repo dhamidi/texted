@@ -22,8 +22,8 @@ func NewTextedDocTool() mcp.Tool {
 		mcp.WithString("category",
 			mcp.Description("Filter functions by category (e.g., 'search', 'movement', 'editing')"),
 		),
-		mcp.WithString("verbose",
-			mcp.Description("Show function summaries in list view (true/false)"),
+		mcp.WithBoolean("verbose",
+			mcp.Description("Show function summaries in list view"),
 		),
 	)
 }
@@ -31,8 +31,7 @@ func NewTextedDocTool() mcp.Tool {
 func TextedDocHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	functionName := request.GetString("function_name", "")
 	category := request.GetString("category", "")
-	verboseStr := request.GetString("verbose", "false")
-	verbose := verboseStr == "true"
+	verbose := request.GetBool("verbose", false)
 
 	// Validate mutually exclusive parameters
 	if functionName != "" && category != "" {
