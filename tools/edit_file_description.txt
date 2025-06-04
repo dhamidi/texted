@@ -2,6 +2,8 @@ Use this tool when you need to apply consistent text transformations across mult
 
 Apply texted scripts to edit multiple files in place using a subset of Emacs Lisp commands.
 
+When loopUntilError is true, the script is applied repeated until applying it again yields an error.  In this case the error signals completion, not an actual failure.  The number of iterations will tell whether the script failed for a valid reason.
+
 SYNTAX FORMATS
 ==============
 texted supports three interchangeable syntax formats that produce identical results:

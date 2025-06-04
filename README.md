@@ -16,6 +16,21 @@ It even includes a non-turing-complete, overly simplistic implementation of Emac
 This is a conscious design decision: logic like this should live on a higher level,
 like your shell's looping construct or the main loop of your favorite coding agent.
 
+## Installation
+
+```bash
+go install github.com/dhamidi/texted/cmd/texted@latest
+```
+
+Add to Claude Code:
+
+```
+claude mcp add texted texted mcp
+
+```
+
+<p align="center"><img src="./demo.jpeg" height="420"></p>
+
 ## Quick Start
 
 ```bash
@@ -89,20 +104,6 @@ Multi-command arrays:
 ]
 ```
 
-## Installation
-
-```bash
-go install github.com/dhamidi/texted/cmd/texted@latest
-```
-
-Or build from source:
-
-```bash
-git clone https://github.com/dhamidi/texted
-cd texted
-go build ./cmd/texted
-```
-
 ## Command-Line Interface
 
 ### Edit Command
@@ -139,22 +140,26 @@ texted edit -e 'upcase "hello"' -e 'concat "result: " (downcase "WORLD")'
 #### Edit Command Options
 
 **Script Input:**
+
 - `-s, --script SCRIPT` - Execute script directly
 - `-f, --file FILE` - Read script from file  
 - `-e, --expression EXPR` - Execute expression and print result (repeatable)
 
 **Input/Output:**
+
 - `-i, --in-place` - Edit files in place (modify originals)
 - `-o, --output FILE` - Write output to specific file (single file only)
 - `--backup SUFFIX` - Create backup files when using --in-place
 
 **Script Format:**
+
 - `--format FORMAT` - Specify format: shell, sexp, json (default: shell)
 - `--shell` - Force shell-like syntax parsing
 - `--sexp` - Force S-expression syntax parsing  
 - `--json` - Force JSON syntax parsing
 
 **Behavior:**
+
 - `-v, --verbose` - Enable verbose output
 - `-q, --quiet` - Suppress all output except errors
 - `-n, --dry-run` - Show what would be done without making changes
