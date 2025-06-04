@@ -17,6 +17,7 @@ import (
 // 1. Leading whitespace is stripped
 // 2. If the next character is '(', read a regular S-expression list
 // 3. Otherwise build a list by reading tokens until a newline is encountered
+// 4. Semicolons are treated as line separators (equivalent to newlines)
 func ParseReader(r io.Reader) ([]edlisp.Value, error) {
 	scanner := bufio.NewScanner(r)
 	var expressions []edlisp.Value
@@ -27,11 +28,20 @@ func ParseReader(r io.Reader) ([]edlisp.Value, error) {
 			continue // Skip empty lines
 		}
 
-		expr, err := parseLine(line)
-		if err != nil {
-			return nil, err
+		// Split line on semicolons (outside of quotes)
+		commands := splitOnSemicolons(line)
+		for _, command := range commands {
+			command = strings.TrimSpace(command)
+			if command == "" {
+				continue // Skip empty commands
+			}
+			
+			expr, err := parseLine(command)
+			if err != nil {
+				return nil, err
+			}
+			expressions = append(expressions, expr)
 		}
-		expressions = append(expressions, expr)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -240,6 +250,50 @@ func parseList(tokens []string, start int) (edlisp.Value, int, error) {
 	}
 
 	return &edlisp.List{Elements: elements}, pos + 1, nil
+}
+
+// splitOnSemicolons splits a line on semicolons that are not inside quoted strings.
+func splitOnSemicolons(line string) []string {
+	var parts []string
+	var current strings.Builder
+	inQuotes := false
+	escapeNext := false
+
+	for _, r := range line {
+		if escapeNext {
+			current.WriteRune(r)
+			escapeNext = false
+			continue
+		}
+
+		switch r {
+		case '\\':
+			current.WriteRune(r)
+			if inQuotes {
+				escapeNext = true
+			}
+		case '"':
+			current.WriteRune(r)
+			inQuotes = !inQuotes
+		case ';':
+			if inQuotes {
+				current.WriteRune(r)
+			} else {
+				// Found a semicolon outside quotes - split here
+				parts = append(parts, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(r)
+		}
+	}
+
+	// Add the last part
+	if current.Len() > 0 {
+		parts = append(parts, current.String())
+	}
+
+	return parts
 }
 
 // parseToken converts a single token into a Value.

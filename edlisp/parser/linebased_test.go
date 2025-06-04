@@ -540,3 +540,145 @@ func TestParseString_NestedWithMixedTypes(t *testing.T) {
 		t.Errorf("expected 10, got %f", num.Value)
 	}
 }
+
+func TestParseString_SemicolonSeparatedCommands(t *testing.T) {
+	input := `goto-char 6; delete-char 2`
+	result, err := ParseString(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 2 {
+		t.Fatalf("expected 2 expressions, got %d", len(result))
+	}
+
+	// Check first command: goto-char 6
+	list1 := result[0].(*edlisp.List)
+	if len(list1.Elements) != 2 {
+		t.Fatalf("expected 2 elements in first command, got %d", len(list1.Elements))
+	}
+	
+	sym1 := list1.Elements[0].(*edlisp.Symbol)
+	if sym1.Name != "goto-char" {
+		t.Errorf("expected 'goto-char', got '%s'", sym1.Name)
+	}
+	
+	num1 := list1.Elements[1].(*edlisp.Number)
+	if num1.Value != 6 {
+		t.Errorf("expected 6, got %f", num1.Value)
+	}
+
+	// Check second command: delete-char 2
+	list2 := result[1].(*edlisp.List)
+	if len(list2.Elements) != 2 {
+		t.Fatalf("expected 2 elements in second command, got %d", len(list2.Elements))
+	}
+	
+	sym2 := list2.Elements[0].(*edlisp.Symbol)
+	if sym2.Name != "delete-char" {
+		t.Errorf("expected 'delete-char', got '%s'", sym2.Name)
+	}
+	
+	num2 := list2.Elements[1].(*edlisp.Number)
+	if num2.Value != 2 {
+		t.Errorf("expected 2, got %f", num2.Value)
+	}
+}
+
+func TestParseString_SemicolonWithSpaces(t *testing.T) {
+	input := `set-mark ; goto-char 10 ; delete-char 1`
+	result, err := ParseString(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 3 {
+		t.Fatalf("expected 3 expressions, got %d", len(result))
+	}
+
+	// Check commands are parsed correctly
+	commands := []string{"set-mark", "goto-char", "delete-char"}
+	for i, expectedCmd := range commands {
+		list := result[i].(*edlisp.List)
+		sym := list.Elements[0].(*edlisp.Symbol)
+		if sym.Name != expectedCmd {
+			t.Errorf("command %d: expected '%s', got '%s'", i, expectedCmd, sym.Name)
+		}
+	}
+}
+
+func TestParseString_SemicolonInQuotes(t *testing.T) {
+	input := `search-forward "text;with;semicolons"; replace-match "new"`
+	result, err := ParseString(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 2 {
+		t.Fatalf("expected 2 expressions, got %d", len(result))
+	}
+
+	// Check first command has string with semicolons
+	list1 := result[0].(*edlisp.List)
+	str1 := list1.Elements[1].(*edlisp.String)
+	if str1.Value != "text;with;semicolons" {
+		t.Errorf("expected 'text;with;semicolons', got '%s'", str1.Value)
+	}
+
+	// Check second command
+	list2 := result[1].(*edlisp.List)
+	sym2 := list2.Elements[0].(*edlisp.Symbol)
+	if sym2.Name != "replace-match" {
+		t.Errorf("expected 'replace-match', got '%s'", sym2.Name)
+	}
+}
+
+func TestParseString_MultipleSemicolonsAndEmptyCommands(t *testing.T) {
+	input := `goto-char 5;; delete-char 1; ; set-mark`
+	result, err := ParseString(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	// Should parse 3 commands (empty commands are skipped)
+	if len(result) != 3 {
+		t.Fatalf("expected 3 expressions, got %d", len(result))
+	}
+
+	// Verify the commands
+	commands := []string{"goto-char", "delete-char", "set-mark"}
+	for i, expectedCmd := range commands {
+		list := result[i].(*edlisp.List)
+		sym := list.Elements[0].(*edlisp.Symbol)
+		if sym.Name != expectedCmd {
+			t.Errorf("command %d: expected '%s', got '%s'", i, expectedCmd, sym.Name)
+		}
+	}
+}
+
+func TestSplitOnSemicolons(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected []string
+	}{
+		{`command1; command2`, []string{"command1", " command2"}},
+		{`cmd "arg;with;semi"; cmd2`, []string{`cmd "arg;with;semi"`, " cmd2"}},
+		{`cmd1;;cmd2`, []string{"cmd1", "", "cmd2"}},
+		{`single-command`, []string{"single-command"}},
+		{`cmd "escaped\"semicolon;here"; cmd2`, []string{`cmd "escaped\"semicolon;here"`, " cmd2"}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.input, func(t *testing.T) {
+			result := splitOnSemicolons(tc.input)
+			if len(result) != len(tc.expected) {
+				t.Errorf("expected %d parts, got %d", len(tc.expected), len(result))
+			}
+			for i, expected := range tc.expected {
+				if i >= len(result) || result[i] != expected {
+					t.Errorf("part %d: expected %q, got %q", i, expected, result[i])
+				}
+			}
+		})
+	}
+}
