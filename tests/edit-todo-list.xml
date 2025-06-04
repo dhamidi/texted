@@ -1,0 +1,12 @@
+<buffer>- [ ] Buy milk
+- [ ] Call mother
+- [ ] Eat lunch</buffer>
+<input lang="shell">
+search-forward "mother"
+beginning-of-line
+search-forward "[ ]"
+replace-match "[x]"
+</input>
+<output>- [ ] Buy milk
+- [x] Call mother
+- [ ] Eat lunch</output>
