@@ -23,6 +23,8 @@ texted edit --script-format json --script '["search-forward", "pattern"]' file.t
 
 texted supports three interchangeable syntax formats, all producing identical results:
 
+**File Extensions**: When using script files, use `.elsh` for shell-like syntax, `.el` for S-expression syntax, and `.json` for JSON format.
+
 ### Shell-like Syntax (Default)
 Clean, readable syntax that feels like command-line tools:
 ```bash
@@ -34,19 +36,18 @@ replace-match "method"
 goto-line 5; insert "// Added comment\n"
 
 # With arguments
-goto-char 100; set-mark; forward-word 3; upcase-region
+goto-char 100; set-mark; forward-word 3; delete-region
 ```
 
 ### S-expressions
-Lisp-style syntax for complex nested operations:
+Lisp-style syntax for precise function calls:
 ```lisp
 (search-forward "old text")
 (replace-match "new text")
 
-; Nested structures
-(progn
-  (goto-line 1)
-  (insert "Header\n"))
+; Multiple commands as separate expressions
+(goto-line 1)
+(insert "Header\n")
 ```
 
 ### JSON Arrays
@@ -54,8 +55,10 @@ Machine-friendly format perfect for generating scripts programmatically:
 ```json
 ["search-forward", "pattern"]
 ["replace-match", "replacement"]
+```
 
-; Multi-command arrays
+Multi-command arrays:
+```json
 [
   ["goto-line", 1], 
   ["insert", "#!/bin/bash\n"]
@@ -82,16 +85,19 @@ Apply scripts to files or stdin/stdout:
 
 ```bash
 # Process stdin to stdout
-cat file.txt | texted edit --script 'upcase-region' > output.txt
+cat file.txt | texted edit --script 'mark-whole-buffer; replace-region "PROCESSED"' > output.txt
 
 # Edit multiple files in place
 texted edit --script 'search-forward "v1.0"; replace-match "v2.0"' *.md
 
-# Use external script file
-texted edit --script-file transform.txt input.go
+# Use external script file (.elsh for linebased format)
+texted edit --script-file transform.elsh input.go
+
+# Use S-expression script file (.el extension)
+texted edit --script-format sexp --script-file transform.el input.go
 
 # Specify format explicitly
-texted edit --script-format sexp --script '(capitalize-region)' doc.txt
+texted edit --script-format sexp --script '(mark-whole-buffer)' doc.txt
 ```
 
 ### Test Command
@@ -145,16 +151,23 @@ beginning-of-line
 insert "// TODO: Add documentation\n"
 ```
 
-#### Structured Text Manipulation
+#### Text Selection and Replacement  
 ```bash
-# Mark entire function and uppercase it
+# Select a word and replace it with new content
+search-forward "old"
+mark-word
+replace-region "new"
+```
+
+#### Structured Text Manipulation  
+```bash
+# Mark entire function and delete it
 search-forward "func main"
-mark-line
-end-of-line
+beginning-of-line
 set-mark
 search-forward "}"
 forward-char
-upcase-region
+delete-region
 ```
 
 #### Pattern-Based Transformations
@@ -172,7 +185,7 @@ The mark-and-point system enables precise text selection:
 # Mark a word for operation
 goto-char 50
 mark-word
-downcase-region
+replace-region "newword"
 
 # Mark multiple lines
 goto-line 10
@@ -180,9 +193,9 @@ set-mark
 goto-line 15
 delete-region
 
-# Mark entire buffer
+# Mark entire buffer and replace with transformed content
 mark-whole-buffer
-replace-regexp-in-string "\t" "    "  # Convert tabs to spaces
+replace-region "New content for entire buffer"
 ```
 
 ## MCP Integration
@@ -219,9 +232,9 @@ await mcpClient.callTool("edit_file", {
 
 await mcpClient.callTool("eval", {
   input: "hello world",
-  script: "upcase-region"
+  script: "search-forward \"world\"; replace-match \"universe\""
 });
-// Returns: "HELLO WORLD"
+// Returns: "hello universe"
 ```
 
 ## Advanced Usage
@@ -234,7 +247,7 @@ search-forward "func "
 beginning-of-line
 mark-line
 end-of-line
-# Store selected line in variable, reformat, replace
+# This example shows marking and would need additional logic for reformatting
 ```
 
 ### Error Handling
@@ -395,7 +408,7 @@ grep ERROR app.log | texted edit --script 'beginning-of-line; insert "[PROCESSED
 ### Documentation Generation
 ```bash
 # Add missing docstrings to Python functions
-texted edit --script 'search-forward "def "; beginning-of-line; insert '\"\"\"TODO: Add docstring\"\"\"\n'  *.py
+texted edit --script 'search-forward "def "; beginning-of-line; insert "    \"\"\"TODO: Add docstring\"\"\"\n"'  *.py
 ```
 
 ## Comparison to Other Tools
