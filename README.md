@@ -1,4 +1,6 @@
-# texted
+# texted - scriptable, headless text editor
+
+<p align="center"><img src="./logo.png" width="128" height="128"></p>
 
 If you ever wondered what happened if Emacs and sed had a baby, here you go.
 
@@ -514,4 +516,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ---
 
 *texted brings the power of programmatic text editing to the command line, combining the familiarity of Unix tools with the sophistication of Emacs commands. Whether you're automating code transformations, processing data files, or integrating with AI tools, texted provides the precision and flexibility you need.*
-
