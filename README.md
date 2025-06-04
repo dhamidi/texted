@@ -442,7 +442,7 @@ go vet ./...
 
 ## License
 
-[Include appropriate license information]
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
