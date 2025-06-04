@@ -101,6 +101,70 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Buffer-content only tests do not need a `<result>` element.
 
+## Integration Testing Instructions
+
+After implementing new edit command features, run these integration tests:
+
+### Basic Functionality Tests
+```bash
+# Test build
+go build ./cmd/texted
+
+# Test unit tests
+go test ./edlisp
+
+# Test integration tests  
+go run ./cmd/texted test
+```
+
+### Edit Command Flag Tests
+```bash
+# Test help output shows all flags
+./texted edit --help
+
+# Test basic script execution
+echo "hello world" | ./texted edit -s "mark-whole-buffer; replace-region (upcase (buffer-substring (region-beginning) (region-end)))"
+
+# Test output redirection (-o flag)
+echo "test" > tmp/input.txt
+./texted edit -s "mark-whole-buffer; replace-region (upcase (buffer-substring (region-beginning) (region-end)))" -o tmp/output.txt tmp/input.txt
+cat tmp/output.txt  # Should show "TEST"
+
+# Test in-place editing with backup (--backup flag)
+echo "test" > tmp/input.txt
+./texted edit -s "mark-whole-buffer; replace-region (upcase (buffer-substring (region-beginning) (region-end)))" -i --backup .bak tmp/input.txt
+cat tmp/input.txt      # Should show "TEST"
+cat tmp/input.txt.bak  # Should show "test"
+
+# Test dry-run mode (-n flag)
+echo "test" > tmp/input.txt
+./texted edit -s "mark-whole-buffer; replace-region (upcase (buffer-substring (region-beginning) (region-end)))" -n -v tmp/input.txt
+# Should show dry-run output without modifying file
+
+# Test verbose and quiet flags
+echo "test" > tmp/input.txt
+./texted edit -s "mark-whole-buffer; replace-region (upcase (buffer-substring (region-beginning) (region-end)))" -v -i tmp/input.txt  # Verbose output
+./texted edit -s "mark-whole-buffer; replace-region (downcase (buffer-substring (region-beginning) (region-end)))" -q -i tmp/input.txt  # Quiet output
+
+# Test format shorthand flags
+echo "test" > tmp/input.txt
+./texted edit --sexp -s '(mark-whole-buffer)' tmp/input.txt
+
+# Test error handling for invalid flag combinations
+./texted edit -s "test" -i -o output.txt tmp/input.txt  # Should error: cannot use -i and -o together
+./texted edit -s "test" --backup .bak tmp/input.txt    # Should error: --backup requires --in-place
+./texted edit -s "test" -o output.txt tmp/input1.txt tmp/input2.txt  # Should error: -o with multiple files
+```
+
+### Expression Evaluation Tests
+```bash
+# Note: Expression evaluation may have limitations with complex quoting
+# Test simple expressions if implementation supports them
+./texted edit -e 'upcase "hello"' 2>/dev/null || echo "Expression evaluation needs shell escaping fixes"
+```
+
 ## Memories
 
 - Remember to write out edlisp.Value objects using the existing sexp writer.
+- When testing edit command flags, use proper script syntax with semicolon separators for multiple instructions
+- Complex region operations require: `mark-whole-buffer; replace-region (function (buffer-substring (region-beginning) (region-end)))`

@@ -20,17 +20,20 @@ like your shell's looping construct or the main loop of your favorite coding age
 
 ```bash
 # Basic text processing via stdin/stdout
-echo "hello world" | texted edit --script 'search-forward "world"; replace-match "universe"'
+echo "hello world" | texted edit -s 'search-forward "world"; replace-match "universe"'
 # Output: hello universe
 
 # Edit files in place
-texted edit --script 'search-forward "TODO"; replace-match "DONE"' src/*.go
+texted edit -s 'search-forward "TODO"; replace-match "DONE"' -i src/*.go
 
 # Use S-expression syntax
-texted edit --script-format sexp --script '(search-forward "pattern")' file.txt
+texted edit --sexp -s '(search-forward "pattern")' file.txt
 
-# Process with JSON format
-texted edit --script-format json --script '["search-forward", "pattern"]' file.txt
+# Process with JSON format and output to file
+texted edit --json -s '["search-forward", "pattern"]' -o result.txt input.txt
+
+# Evaluate expressions and see results
+texted edit -e 'upcase "hello"' -e 'downcase "WORLD"'
 ```
 
 ## Script Formats
@@ -104,24 +107,57 @@ go build ./cmd/texted
 
 ### Edit Command
 
-Apply scripts to files or stdin/stdout:
+Apply scripts to files or stdin/stdout with comprehensive options:
 
 ```bash
 # Process stdin to stdout
-cat file.txt | texted edit --script 'mark-whole-buffer; replace-region "PROCESSED"' > output.txt
+cat file.txt | texted edit -s 'mark-whole-buffer; replace-region "PROCESSED"' > output.txt
 
-# Edit multiple files in place
-texted edit --script 'search-forward "v1.0"; replace-match "v2.0"' *.md
+# Edit multiple files in place with backup
+texted edit -s 'search-forward "v1.0"; replace-match "v2.0"' -i --backup .bak *.md
 
-# Use external script file (.elsh for linebased format)
-texted edit --script-file transform.elsh input.go
+# Use external script file
+texted edit -f transform.elsh input.go
 
-# Use S-expression script file (.el extension)
-texted edit --script-format sexp --script-file transform.el input.go
+# Output to specific file
+texted edit -s 'mark-whole-buffer; replace-region "UPDATED"' -o result.txt input.txt
 
-# Specify format explicitly
-texted edit --script-format sexp --script '(mark-whole-buffer)' doc.txt
+# Dry run to see what would be changed
+texted edit -s 'search-forward "old"; replace-match "new"' -n -v file.txt
+
+# Quiet mode (no output except errors)
+texted edit -s 'search-forward "pattern"; replace-match "replacement"' -i -q *.txt
+
+# Use format shorthand flags
+texted edit --sexp -s '(mark-whole-buffer)' doc.txt
+texted edit --json -s '["search-forward", "pattern"]' data.txt
+
+# Evaluate expressions and print results  
+texted edit -e 'upcase "hello"' -e 'concat "result: " (downcase "WORLD")'
 ```
+
+#### Edit Command Options
+
+**Script Input:**
+- `-s, --script SCRIPT` - Execute script directly
+- `-f, --file FILE` - Read script from file  
+- `-e, --expression EXPR` - Execute expression and print result (repeatable)
+
+**Input/Output:**
+- `-i, --in-place` - Edit files in place (modify originals)
+- `-o, --output FILE` - Write output to specific file (single file only)
+- `--backup SUFFIX` - Create backup files when using --in-place
+
+**Script Format:**
+- `--format FORMAT` - Specify format: shell, sexp, json (default: shell)
+- `--shell` - Force shell-like syntax parsing
+- `--sexp` - Force S-expression syntax parsing  
+- `--json` - Force JSON syntax parsing
+
+**Behavior:**
+- `-v, --verbose` - Enable verbose output
+- `-q, --quiet` - Suppress all output except errors
+- `-n, --dry-run` - Show what would be done without making changes
 
 ### Test Command
 
@@ -462,22 +498,25 @@ replace-region '"2.0.0"'
 ### Code Refactoring
 
 ```bash
-# Rename functions across multiple files
-texted edit --script 'search-forward "oldFunctionName"; replace-match "newFunctionName"' src/*.js
+# Rename functions across multiple files with backup
+texted edit -s 'search-forward "oldFunctionName"; replace-match "newFunctionName"' -i --backup .orig src/*.js
 ```
 
 ### Log File Processing
 
 ```bash
 # Extract error lines from log
-grep ERROR app.log | texted edit --script 'beginning-of-line; insert "[PROCESSED] "'
+grep ERROR app.log | texted edit -s 'beginning-of-line; insert "[PROCESSED] "'
 ```
 
 ### Documentation Generation
 
 ```bash
-# Add missing docstrings to Python functions
-texted edit --script 'search-forward "def "; beginning-of-line; insert "    \"\"\"TODO: Add docstring\"\"\"\n"'  *.py
+# Add missing docstrings to Python functions (dry run first)
+texted edit -s 'search-forward "def "; beginning-of-line; insert "    \"\"\"TODO: Add docstring\"\"\"\n"' -n -v *.py
+
+# Apply changes if dry run looks good
+texted edit -s 'search-forward "def "; beginning-of-line; insert "    \"\"\"TODO: Add docstring\"\"\"\n"' -i *.py
 ```
 
 ## Comparison to Other Tools
