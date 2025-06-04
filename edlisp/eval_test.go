@@ -1,6 +1,7 @@
 package edlisp
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -107,8 +108,9 @@ func TestEvalUndefinedFunction(t *testing.T) {
 		t.Error("Expected error for undefined function")
 	}
 
-	if err.Error() != `undefined-function "undefined-function"` {
-		t.Errorf("Expected specific error message, got %q", err.Error())
+	expectedMessage := `undefined-function "undefined-function"`
+	if !strings.Contains(err.Error(), expectedMessage) {
+		t.Errorf("Expected error message to contain %q, got %q", expectedMessage, err.Error())
 	}
 }
 

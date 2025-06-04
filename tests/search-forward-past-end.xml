@@ -1,0 +1,12 @@
+<buffer>Hello world, this is a test buffer.
+The word "test" appears twice here.
+Another line with test content.</buffer>
+<input lang="shell">
+search-forward "test"
+search-forward "test"
+search-forward "test"
+search-forward "test"
+point
+</input>
+<result lang="sexp">28</result>
+<error>search failed (at instruction 3: (search-forward "test"), point=95, mark=1)</error>

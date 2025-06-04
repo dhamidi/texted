@@ -101,3 +101,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Buffer-content only tests do not need a `<result>` element.
 
+## Memories
+
+- Remember to write out edlisp.Value objects using the existing sexp writer.

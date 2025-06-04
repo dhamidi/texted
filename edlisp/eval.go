@@ -94,10 +94,10 @@ func Eval(program []Value, env *Environment, buffer *Buffer) (Value, error) {
 func EvalWithTrace(program []Value, env *Environment, buffer *Buffer, traceCallback TraceCallback) (Value, error) {
 	var result Value = NewString("")
 
-	for _, expr := range program {
+	for i, expr := range program {
 		val, err := evalExpression(expr, env, buffer)
 		if err != nil {
-			return nil, err
+			return nil, NewExecutionError(err, program, i, expr, buffer, env)
 		}
 		result = val
 
@@ -148,7 +148,11 @@ func evalExpression(expr Value, env *Environment, buffer *Buffer) (Value, error)
 			args[i-1] = evaluatedArg
 		}
 
-		return fn(args, buffer)
+		result, err := fn(args, buffer)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
 	default:
 		return nil, fmt.Errorf("unknown expression type")
 	}
