@@ -19,6 +19,7 @@ through standardized tools. The server communicates over stdio and provides:
 
 - edit_file: Apply texted scripts to one or more files
 - texted_eval: Transform input text using texted scripts
+- texted_doc: Query texted function documentation
 
 The server supports all texted script formats: shell-like syntax, S-expressions, and JSON.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -41,6 +42,9 @@ func runMCPServer() error {
 
 	textedEvalTool := tools.NewTextedEvalTool()
 	s.AddTool(textedEvalTool, tools.TextedEvalHandler)
+
+	textedDocTool := tools.NewTextedDocTool()
+	s.AddTool(textedDocTool, tools.TextedDocHandler)
 
 	if err := server.ServeStdio(s); err != nil {
 		return fmt.Errorf("MCP server error: %w", err)

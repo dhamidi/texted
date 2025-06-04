@@ -1,0 +1,90 @@
+Query texted function documentation programmatically. Access the same comprehensive documentation available through the 'texted doc' command via MCP, enabling external systems to discover and understand available editing functions.
+
+Retrieve documentation for specific functions, browse functions by category, or list all available functions with optional verbose summaries.
+
+USAGE MODES
+===========
+The tool supports three distinct usage modes based on the parameters provided:
+
+1. SPECIFIC FUNCTION DOCUMENTATION
+   Provide function_name to get complete documentation for a specific function.
+   Returns: Full markdown documentation including summary, description, parameters, examples, category, and related functions.
+   Example: {"function_name": "search-forward"}
+
+2. CATEGORY FILTERING
+   Provide category to list all functions within a specific category.
+   Returns: List of function names in the category, optionally with summaries if verbose=true.
+   Example: {"category": "search"} or {"category": "search", "verbose": true}
+
+3. COMPLETE FUNCTION LISTING
+   Provide no specific parameters (or just verbose=true) to list all available functions.
+   Returns: Alphabetically sorted list of all functions, optionally with summaries if verbose=true.
+   Example: {} or {"verbose": true}
+
+AVAILABLE CATEGORIES
+===================
+Functions are organized into logical categories for easier discovery:
+
+- search: Text search and pattern matching functions
+- movement: Cursor and point positioning functions  
+- editing: Text insertion, deletion, and modification functions
+- region: Text selection and region manipulation functions
+- buffer: Buffer-wide operations and queries
+- string: String processing and transformation functions
+
+PARAMETER DETAILS
+================
+- function_name (optional string): Exact name of function to document (e.g., "search-forward", "replace-match")
+- category (optional string): Filter functions by category (e.g., "search", "editing", "movement")
+- verbose (optional boolean): Include function summaries in list views (default: false)
+
+Note: function_name and category are mutually exclusive - provide one or the other, not both.
+
+OUTPUT FORMATS
+==============
+
+SPECIFIC FUNCTION DOCUMENTATION:
+Returns complete markdown documentation identical to 'texted doc function-name':
+- Function name and signature
+- Brief summary
+- Detailed description
+- Parameter documentation with types and descriptions
+- Usage examples with sample input/output
+- Category classification
+- Related functions (see-also links)
+
+FUNCTION LISTING (NON-VERBOSE):
+Returns clean list format suitable for programmatic parsing:
+- Function names only, one per line
+- Alphabetically sorted
+- Category header if filtering by category
+- Total count summary
+
+FUNCTION LISTING (VERBOSE):
+Returns enriched list with summaries:
+- Function name followed by brief summary
+- Organized by category with headers
+- Alphabetically sorted within categories
+- Total count and usage guidance
+
+COMMON USE CASES
+===============
+- Code completion and IDE integration
+- Documentation generation and help systems
+- Script validation and function discovery
+- Learning and exploration of texted capabilities
+- Building automated workflows that use texted functions
+
+INTEGRATION WORKFLOW
+===================
+1. Query available categories: {} 
+2. Explore specific category: {"category": "search", "verbose": true}
+3. Get detailed function docs: {"function_name": "search-forward"}
+4. Use function in edit_file or texted_eval tools
+
+ERROR HANDLING
+==============
+- Invalid function names return descriptive error with suggestions
+- Invalid categories return list of valid categories
+- Empty categories return appropriate informational message
+- Parameter validation errors provide clear usage guidance
