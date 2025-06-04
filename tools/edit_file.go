@@ -2,15 +2,19 @@ package tools
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 
 	"github.com/dhamidi/texted"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
+//go:embed edit_file_description.txt
+var editFileDescription string
+
 func NewEditFileTool() mcp.Tool {
 	return mcp.NewTool("edit_file",
-		mcp.WithDescription("Apply a texted script to one or more files"),
+		mcp.WithDescription(editFileDescription),
 		mcp.WithString("script",
 			mcp.Required(),
 			mcp.Description("The texted script to execute on each file"),

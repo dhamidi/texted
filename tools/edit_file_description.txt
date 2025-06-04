@@ -1,0 +1,121 @@
+Apply texted scripts to edit multiple files in place using a subset of Emacs Lisp commands.
+
+OVERVIEW
+========
+texted is a scriptable, headless text editor that uses an Emacs-like buffer model with point (cursor) and mark (selection) positions. It implements a non-Turing-complete subset of Emacs Lisp specifically designed for text editing operations - no control flow (if/while/for), lambdas, or macros. This forces logic to live at a higher level (shell loops, AI agent logic) while keeping editing scripts simple and predictable.
+
+SYNTAX FORMATS
+==============
+texted supports three interchangeable syntax formats that produce identical results:
+
+1. SHELL-LIKE SYNTAX (Default and Recommended)
+   Clean, readable command-line style:
+   search-forward "pattern"
+   replace-match "replacement"
+   goto-line 5; insert "// Comment\n"
+
+2. S-EXPRESSION SYNTAX
+   Traditional Lisp style:
+   (search-forward "pattern")
+   (replace-match "replacement")
+
+3. JSON ARRAY SYNTAX
+   Machine-friendly format:
+   ["search-forward", "pattern"]
+   ["replace-match", "replacement"]
+
+BUFFER MODEL
+============
+- Buffer contains UTF-8 text with 1-based indexing (position 1 = before first character)
+- Point: current cursor position (like Emacs point)
+- Mark: secondary position that forms a "region" with point for selections
+- All positions are automatically clamped to valid buffer bounds
+- Invalid operations fail gracefully without corrupting buffer state
+
+TOP 10 ESSENTIAL FUNCTIONS FOR SEARCH-AND-REPLACE WORKFLOWS
+===========================================================
+
+1. search-forward "pattern"
+   Find text moving forward from current point. Sets match info for replace-match.
+   Example: search-forward "TODO"
+
+2. replace-match "replacement"
+   Replace the last successful search match with new text.
+   Example: search-forward "v1.0"; replace-match "v2.0"
+
+3. re-search-forward "regexp"
+   Regex search forward. More powerful than literal search-forward.
+   Example: re-search-forward "func\s+\w+"
+
+4. mark-whole-buffer
+   Select entire buffer content (sets mark at beginning, point at end).
+   Example: mark-whole-buffer; replace-region "NEW CONTENT"
+
+5. replace-region "text"
+   Replace all text between mark and point with new text.
+   Example: mark-word; replace-region "newword"
+
+6. search-backward "pattern"
+   Find text moving backward from current point.
+   Example: search-backward "import"
+
+7. mark-word
+   Select the current word (or next word if point is between words).
+   Example: search-forward "oldname"; mark-word; replace-region "newname"
+
+8. goto-line N
+   Jump to a specific line number (1-based).
+   Example: goto-line 1; insert "#!/bin/bash\n"
+
+9. insert "text"
+   Insert text at current point position.
+   Example: search-forward "func main"; beginning-of-line; insert "// Main function\n"
+
+10. set-mark
+    Set mark at current point to begin a selection.
+    Example: search-forward "start"; set-mark; search-forward "end"; delete-region
+
+COMMON WORKFLOW PATTERNS
+========================
+
+Find and Replace:
+search-forward "old"; replace-match "new"
+
+Global Replace (combine with shell loops):
+while texted edit -s 'search-forward "pattern"' file.txt; do
+  texted edit -s 'replace-match "replacement"' -i file.txt
+done
+
+Select and Replace:
+search-forward "function"; mark-word; replace-region "method"
+
+Add Content at Location:
+goto-line 1; insert "Header\n"
+search-forward "TODO"; beginning-of-line; insert "// FIXME: "
+
+Multi-step Transformation:
+search-forward "old_func"; beginning-of-line; set-mark; end-of-line; replace-region "new_func()"
+
+TESTING SCRIPTS SAFELY
+=======================
+Use the companion 'eval' tool to test scripts on sample text before applying to files:
+- eval tool takes input text and script, returns transformed result
+- Perfect for testing regex patterns, replacement text, and multi-step operations
+- Example: eval with input "hello world" and script 'search-forward "world"; replace-match "universe"' returns "hello universe"
+
+ERROR HANDLING
+==============
+- Failed searches leave point unchanged
+- Invalid positions are clamped to buffer bounds  
+- Malformed regexes fall back to literal string matching
+- Invalid function calls return descriptive error messages
+- File I/O errors are reported per-file with success/failure status
+
+PERFORMANCE NOTES
+=================
+- Optimized for large files and batch operations
+- Minimal memory footprint
+- Fast startup time suitable for repeated script execution
+- Efficient regex engine using Go's regexp package
+
+Use this tool when you need to apply consistent text transformations across multiple files, especially for code refactoring, configuration updates, or automated editing tasks.
