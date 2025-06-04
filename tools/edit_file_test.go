@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/dhamidi/texted"
+	"github.com/mark3labs/mcp-go/mcp"
 )
 
 func TestExecuteScript(t *testing.T) {

@@ -557,12 +557,12 @@ func TestParseString_SemicolonSeparatedCommands(t *testing.T) {
 	if len(list1.Elements) != 2 {
 		t.Fatalf("expected 2 elements in first command, got %d", len(list1.Elements))
 	}
-	
+
 	sym1 := list1.Elements[0].(*edlisp.Symbol)
 	if sym1.Name != "goto-char" {
 		t.Errorf("expected 'goto-char', got '%s'", sym1.Name)
 	}
-	
+
 	num1 := list1.Elements[1].(*edlisp.Number)
 	if num1.Value != 6 {
 		t.Errorf("expected 6, got %f", num1.Value)
@@ -573,12 +573,12 @@ func TestParseString_SemicolonSeparatedCommands(t *testing.T) {
 	if len(list2.Elements) != 2 {
 		t.Fatalf("expected 2 elements in second command, got %d", len(list2.Elements))
 	}
-	
+
 	sym2 := list2.Elements[0].(*edlisp.Symbol)
 	if sym2.Name != "delete-char" {
 		t.Errorf("expected 'delete-char', got '%s'", sym2.Name)
 	}
-	
+
 	num2 := list2.Elements[1].(*edlisp.Number)
 	if num2.Value != 2 {
 		t.Errorf("expected 2, got %f", num2.Value)

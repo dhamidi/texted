@@ -35,7 +35,7 @@ func ParseReader(r io.Reader) ([]edlisp.Value, error) {
 			if command == "" {
 				continue // Skip empty commands
 			}
-			
+
 			expr, err := parseLine(command)
 			if err != nil {
 				return nil, err
