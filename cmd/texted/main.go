@@ -19,6 +19,7 @@ func main() {
 	rootCmd.AddCommand(commands.NewParseCommand())
 	rootCmd.AddCommand(commands.NewTestCommand())
 	rootCmd.AddCommand(commands.NewDocCommand())
+	rootCmd.AddCommand(commands.NewMCPCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
