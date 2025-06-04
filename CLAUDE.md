@@ -8,10 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- **Build**: `go build`
+- **Build**: `go build ./cmd/texted`
 - **Test**: `go test ./edlisp`
 - Integration tests: `go run ./cmd/texted test`
-- **Run**: `go run .`
+- **Run**: `go run ./cmd/texted`
 - **Format**: `go fmt ./...`
 - **Vet**: `go vet ./...`
 
@@ -100,3 +100,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Testing Notes
 
 - Buffer-content only tests do not need a `<result>` element.
+
