@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/dhamidi/texted"
+	"github.com/dhamidi/texted/edlisp"
+	"github.com/dhamidi/texted/edlisp/parser"
+	"github.com/dhamidi/texted/edlisp/writer"
 )
 
 // NewEditCommand creates the edit subcommand.
@@ -24,6 +28,7 @@ func NewEditCommand() *cobra.Command {
 		shell        bool
 		sexp         bool
 		json         bool
+		outputFormat string
 	)
 
 	cmd := &cobra.Command{
@@ -39,7 +44,7 @@ Script formats:
   sexp:   S-expression syntax (e.g., "(search-forward \"hello\")")
   json:   JSON array syntax (e.g., ["search-forward", "hello"])`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runEdit(cmd, scriptFormat, scriptFile, inPlace, outputFile, backupSuffix, verbose, quiet, dryRun, shell, sexp, json, args)
+			return runEdit(cmd, scriptFormat, scriptFile, inPlace, outputFile, backupSuffix, verbose, quiet, dryRun, shell, sexp, json, outputFormat, args)
 		},
 	}
 
@@ -63,12 +68,13 @@ Script formats:
 	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
 	cmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Suppress all output except errors")
 	cmd.Flags().BoolVarP(&dryRun, "dry-run", "n", false, "Show what would be done without making changes")
+	cmd.Flags().StringVar(&outputFormat, "output-format", "shell", "Output format for expression results: shell, sexp, json")
 
 	return cmd
 }
 
 // runEdit handles the edit command execution.
-func runEdit(cmd *cobra.Command, scriptFormat, scriptFile string, inPlace bool, outputFile, backupSuffix string, verbose, quiet, dryRun, shell, sexp, json bool, files []string) error {
+func runEdit(cmd *cobra.Command, scriptFormat, scriptFile string, inPlace bool, outputFile, backupSuffix string, verbose, quiet, dryRun, shell, sexp, json bool, outputFormat string, files []string) error {
 	// Handle format shorthand flags
 	if shell {
 		scriptFormat = "shell"
@@ -101,7 +107,7 @@ func runEdit(cmd *cobra.Command, scriptFormat, scriptFile string, inPlace bool, 
 	}
 
 	if len(expressions) > 0 {
-		return runExpressions(expressions, scriptFormat, verbose, quiet)
+		return runExpressions(expressions, scriptFormat, outputFormat, verbose, quiet, files)
 	}
 
 	// Get script content
@@ -134,14 +140,70 @@ func runEdit(cmd *cobra.Command, scriptFormat, scriptFile string, inPlace bool, 
 }
 
 // runExpressions handles the --expression flag by evaluating expressions and printing results
-func runExpressions(expressions []string, scriptFormat string, verbose, quiet bool) error {
-	for i, expr := range expressions {
-		if verbose && !quiet {
-			fmt.Printf("Evaluating expression %d: %s\n", i+1, expr)
+func runExpressions(expressions []string, scriptFormat string, outputFormat string, verbose, quiet bool, files []string) error {
+	// If no files specified, read from stdin
+	if len(files) == 0 {
+		content, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return fmt.Errorf("reading stdin: %w", err)
+		}
+		return evaluateExpressionsOnContent(expressions, scriptFormat, outputFormat, verbose, quiet, string(content), "stdin")
+	}
+
+	// If multiple files, evaluate expressions on each file
+	for _, filename := range files {
+		content, err := os.ReadFile(filename)
+		if err != nil {
+			if !quiet {
+				fmt.Printf("Error reading %s: %v\n", filename, err)
+			}
+			return fmt.Errorf("reading %s: %w", filename, err)
 		}
 
-		// For expressions, we'll execute them on an empty buffer and get the result
-		result, err := texted.ExecuteScriptWithFormat("", expr, scriptFormat)
+		if len(files) > 1 && !quiet {
+			fmt.Printf("=== %s ===\n", filename)
+		}
+
+		err = evaluateExpressionsOnContent(expressions, scriptFormat, outputFormat, verbose, quiet, string(content), filename)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// evaluateExpressionsOnContent evaluates expressions on the given content
+func evaluateExpressionsOnContent(expressions []string, scriptFormat string, outputFormat string, verbose, quiet bool, content, source string) error {
+	buffer := edlisp.NewBuffer(content)
+	env := edlisp.NewDefaultEnvironment()
+
+	for i, expr := range expressions {
+		if verbose && !quiet {
+			fmt.Printf("Evaluating expression %d on %s: %s\n", i+1, source, expr)
+		}
+
+		// Parse the expression based on format
+		var program []edlisp.Value
+		var err error
+
+		switch scriptFormat {
+		case "shell", "sexp":
+			program, err = parser.ParseString(expr)
+		case "json":
+			program, err = parser.ParseJSONString(expr)
+		default:
+			return fmt.Errorf("unsupported script format: %s", scriptFormat)
+		}
+
+		if err != nil {
+			if !quiet {
+				fmt.Printf("Error parsing expression %d: %v\n", i+1, err)
+			}
+			return fmt.Errorf("parsing expression: %w", err)
+		}
+
+		// Execute the expression and get the result value (not buffer content)
+		result, err := edlisp.Eval(program, env, buffer)
 		if err != nil {
 			if !quiet {
 				fmt.Printf("Error in expression %d: %v\n", i+1, err)
@@ -150,7 +212,39 @@ func runExpressions(expressions []string, scriptFormat string, verbose, quiet bo
 		}
 
 		if !quiet {
-			fmt.Printf("%s\n", result)
+			// Convert the result value to string representation using specified format
+			var writerFormat writer.Format
+			switch outputFormat {
+			case "shell":
+				writerFormat = writer.FormatShell
+			case "sexp":
+				writerFormat = writer.FormatSExp
+			case "json":
+				writerFormat = writer.FormatJSON
+			default:
+				return fmt.Errorf("invalid output format: %s (must be shell, sexp, or json)", outputFormat)
+			}
+
+			w, err := writer.NewWriter(writerFormat)
+			if err != nil {
+				return fmt.Errorf("creating writer: %w", err)
+			}
+
+			var buf strings.Builder
+
+			// For shell format, wrap the result in a list since shell writer expects lists
+			if outputFormat == "shell" {
+				list := edlisp.NewList(result)
+				err = w.WriteValue(&buf, list)
+			} else {
+				err = w.WriteValue(&buf, result)
+			}
+
+			if err != nil {
+				return fmt.Errorf("writing result: %w", err)
+			}
+
+			fmt.Printf("%s\n", buf.String())
 		}
 	}
 	return nil
