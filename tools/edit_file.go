@@ -23,6 +23,9 @@ func NewEditFileTool() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("List of file paths to edit"),
 		),
+		mcp.WithBoolean("loopUntilError",
+			mcp.Description("Run the script repeatedly until an error is returned"),
+		),
 	)
 }
 
@@ -37,13 +40,25 @@ func EditFileHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.Cal
 		return mcp.NewToolResultError(fmt.Sprintf("files parameter required: %v", err)), nil
 	}
 
+	loopUntilError := request.GetBool("loopUntilError", false)
+
 	if len(files) == 0 {
 		return mcp.NewToolResultError("at least one file must be specified"), nil
 	}
 
-	editResults, err := texted.EditFiles(files, script)
-	if err != nil {
-		return mcp.NewToolResultError(fmt.Sprintf("Failed to edit files: %v", err)), nil
+	var editResults []texted.EditResult
+	var editErr error
+	var iterations int
+
+	if loopUntilError {
+		editResults, iterations, editErr = editFilesWithLoop(files, script)
+	} else {
+		editResults, editErr = texted.EditFiles(files, script)
+		iterations = 1
+	}
+
+	if editErr != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to edit files: %v", editErr)), nil
 	}
 
 	var results []string
@@ -58,7 +73,7 @@ func EditFileHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.Cal
 	}
 
 	if len(errors) > 0 {
-		message := fmt.Sprintf("Completed with errors:\n")
+		message := fmt.Sprintf("Completed with errors after %d iterations:\n", iterations)
 		for _, result := range results {
 			message += fmt.Sprintf("✓ %s\n", result)
 		}
@@ -68,10 +83,39 @@ func EditFileHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.Cal
 		return mcp.NewToolResultText(message), nil
 	}
 
-	message := "All files edited successfully:\n"
+	message := fmt.Sprintf("All files edited successfully after %d iterations:\n", iterations)
 	for _, result := range results {
 		message += fmt.Sprintf("✓ %s\n", result)
 	}
 
 	return mcp.NewToolResultText(message), nil
+}
+
+// editFilesWithLoop repeatedly applies a script to files until an error occurs
+func editFilesWithLoop(files []string, script string) ([]texted.EditResult, int, error) {
+	iterations := 0
+	var lastResults []texted.EditResult
+
+	for {
+		iterations++
+		results, err := texted.EditFiles(files, script)
+		if err != nil {
+			return lastResults, iterations, err
+		}
+
+		// Check if any file had an error
+		hasError := false
+		for _, result := range results {
+			if !result.Success {
+				hasError = true
+				break
+			}
+		}
+
+		if hasError {
+			return results, iterations, nil
+		}
+
+		lastResults = results
+	}
 }
