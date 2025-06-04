@@ -524,18 +524,6 @@ texted edit -s 'search-forward "def "; beginning-of-line; insert "    \"\"\"TODO
 texted edit -s 'search-forward "def "; beginning-of-line; insert "    \"\"\"TODO: Add docstring\"\"\"\n"' -i *.py
 ```
 
-## Comparison to Other Tools
-
-| Feature | texted | sed | awk | perl -pe |
-|---------|--------|-----|-----|----------|
-| Syntax formats | 3 (shell/sexp/json) | 1 | 1 | 1 |
-| Buffer model | Emacs-like point/mark | Stream | Record-based | Stream |
-| Regex support | ✓ | ✓ | ✓ | ✓ |
-| Multi-file | ✓ | ✓ | Limited | ✓ |
-| Complex logic | ✓ | Limited | ✓ | ✓ |
-| MCP integration | ✓ | ✗ | ✗ | ✗ |
-| Learning curve | Low-Medium | Low | Medium | High |
-
 ## Development
 
 ```bash
@@ -556,7 +544,3 @@ go vet ./...
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-*texted brings the power of programmatic text editing to the command line, combining the familiarity of Unix tools with the sophistication of Emacs commands. Whether you're automating code transformations, processing data files, or integrating with AI tools, texted provides the precision and flexibility you need.*
