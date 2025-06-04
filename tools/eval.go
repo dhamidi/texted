@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dhamidi/texted"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -32,7 +33,7 @@ func EvalHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToo
 		return mcp.NewToolResultError(fmt.Sprintf("script parameter required: %v", err)), nil
 	}
 
-	output, err := ExecuteScript(input, script)
+	output, err := texted.ExecuteScript(input, script)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("script execution failed: %v", err)), nil
 	}

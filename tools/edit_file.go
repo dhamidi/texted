@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dhamidi/texted"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -36,29 +37,20 @@ func EditFileHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.Cal
 		return mcp.NewToolResultError("at least one file must be specified"), nil
 	}
 
+	editResults, err := texted.EditFiles(files, script)
+	if err != nil {
+		return mcp.NewToolResultError(fmt.Sprintf("Failed to edit files: %v", err)), nil
+	}
+
 	var results []string
 	var errors []string
 
-	for _, filename := range files {
-		content, err := readFile(filename)
-		if err != nil {
-			errors = append(errors, fmt.Sprintf("Failed to read %s: %v", filename, err))
-			continue
+	for _, result := range editResults {
+		if result.Success {
+			results = append(results, fmt.Sprintf("Successfully edited %s", result.Filename))
+		} else {
+			errors = append(errors, fmt.Sprintf("Failed to edit %s: %v", result.Filename, result.Error))
 		}
-
-		modified, err := ExecuteScript(content, script)
-		if err != nil {
-			errors = append(errors, fmt.Sprintf("Failed to execute script on %s: %v", filename, err))
-			continue
-		}
-
-		err = writeFile(filename, modified)
-		if err != nil {
-			errors = append(errors, fmt.Sprintf("Failed to write %s: %v", filename, err))
-			continue
-		}
-
-		results = append(results, fmt.Sprintf("Successfully edited %s", filename))
 	}
 
 	if len(errors) > 0 {

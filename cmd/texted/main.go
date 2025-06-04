@@ -16,6 +16,7 @@ func main() {
 	}
 
 	// Add subcommands
+	rootCmd.AddCommand(commands.NewEditCommand())
 	rootCmd.AddCommand(commands.NewParseCommand())
 	rootCmd.AddCommand(commands.NewTestCommand())
 	rootCmd.AddCommand(commands.NewDocCommand())

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/dhamidi/texted"
 )
 
 func TestExecuteScript(t *testing.T) {
@@ -49,7 +50,7 @@ func TestExecuteScript(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := ExecuteScript(tt.input, tt.script)
+			result, err := texted.ExecuteScript(tt.input, tt.script)
 
 			if tt.wantErr {
 				if err == nil {
@@ -145,7 +146,7 @@ func TestEditFileHandler_NonexistentFile(t *testing.T) {
 	if !ok {
 		t.Fatal("Result content is not text content")
 	}
-	if !strings.Contains(textContent.Text, "Failed to read") {
-		t.Errorf("Result should contain error message for nonexistent file")
+	if !strings.Contains(textContent.Text, "Failed to edit") {
+		t.Errorf("Result should contain error message for nonexistent file, got: %s", textContent.Text)
 	}
 }
