@@ -1,0 +1,436 @@
+# texted
+
+A scriptable, headless text editor for automated file editing. Think of it as sed with the power of Emacs commands, or Emacs without the UI—perfect for scripts, CI/CD pipelines, and text processing automation.
+
+## Quick Start
+
+```bash
+# Basic text processing via stdin/stdout
+echo "hello world" | texted edit --script 'search-forward "world"; replace-match "universe"'
+# Output: hello universe
+
+# Edit files in place
+texted edit --script 'search-forward "TODO"; replace-match "DONE"' src/*.go
+
+# Use S-expression syntax
+texted edit --script-format sexp --script '(search-forward "pattern")' file.txt
+
+# Process with JSON format
+texted edit --script-format json --script '["search-forward", "pattern"]' file.txt
+```
+
+## Script Formats
+
+texted supports three interchangeable syntax formats, all producing identical results:
+
+### Shell-like Syntax (Default)
+Clean, readable syntax that feels like command-line tools:
+```bash
+# Simple commands
+search-forward "function"
+replace-match "method"
+
+# Multiple commands (semicolon-separated)
+goto-line 5; insert "// Added comment\n"
+
+# With arguments
+goto-char 100; set-mark; forward-word 3; upcase-region
+```
+
+### S-expressions
+Lisp-style syntax for complex nested operations:
+```lisp
+(search-forward "old text")
+(replace-match "new text")
+
+; Nested structures
+(progn
+  (goto-line 1)
+  (insert "Header\n"))
+```
+
+### JSON Arrays
+Machine-friendly format perfect for generating scripts programmatically:
+```json
+["search-forward", "pattern"]
+["replace-match", "replacement"]
+
+; Multi-command arrays
+[
+  ["goto-line", 1], 
+  ["insert", "#!/bin/bash\n"]
+]
+```
+
+## Installation
+
+```bash
+go install github.com/dhamidi/texted/cmd/texted@latest
+```
+
+Or build from source:
+```bash
+git clone https://github.com/dhamidi/texted
+cd texted
+go build ./cmd/texted
+```
+
+## Command-Line Interface
+
+### Edit Command
+Apply scripts to files or stdin/stdout:
+
+```bash
+# Process stdin to stdout
+cat file.txt | texted edit --script 'upcase-region' > output.txt
+
+# Edit multiple files in place
+texted edit --script 'search-forward "v1.0"; replace-match "v2.0"' *.md
+
+# Use external script file
+texted edit --script-file transform.txt input.go
+
+# Specify format explicitly
+texted edit --script-format sexp --script '(capitalize-region)' doc.txt
+```
+
+### Test Command
+Run the comprehensive test suite:
+```bash
+# Run all tests
+texted test
+
+# Verbose output showing before/after buffer states
+texted test --verbose
+
+# Run specific tests
+texted test tests/search-*.xml
+
+# Filter tests by pattern
+texted test --include "regex.*test"
+
+# Only show failing tests
+texted test --fail-only
+```
+
+### MCP Server
+Start a Model Context Protocol server for integration with AI tools:
+```bash
+texted mcp
+```
+
+The MCP server exposes two tools:
+- **`edit_file`**: Apply scripts to multiple files
+- **`eval`**: Transform text using scripts
+
+Perfect for integrating with Claude Desktop, VS Code extensions, or other MCP-compatible tools.
+
+## Programming with texted
+
+### Basic Concepts
+
+texted operates on a **buffer** containing UTF-8 text with two key positions:
+- **Point**: Current cursor position (like Emacs point)
+- **Mark**: Secondary position forming a region with point
+
+All positions use 1-based indexing where position 1 is before the first character.
+
+### Example Scripts
+
+#### Find and Replace with Context
+```bash
+# Find function definitions and add documentation
+search-forward "func "
+beginning-of-line
+insert "// TODO: Add documentation\n"
+```
+
+#### Structured Text Manipulation
+```bash
+# Mark entire function and uppercase it
+search-forward "func main"
+mark-line
+end-of-line
+set-mark
+search-forward "}"
+forward-char
+upcase-region
+```
+
+#### Pattern-Based Transformations
+```bash
+# Replace all TODO comments with current date
+re-search-forward "// TODO.*"
+replace-match "// DONE 2024-01-15"
+```
+
+### Working with Regions
+
+The mark-and-point system enables precise text selection:
+
+```bash
+# Mark a word for operation
+goto-char 50
+mark-word
+downcase-region
+
+# Mark multiple lines
+goto-line 10
+set-mark
+goto-line 15
+delete-region
+
+# Mark entire buffer
+mark-whole-buffer
+replace-regexp-in-string "\t" "    "  # Convert tabs to spaces
+```
+
+## MCP Integration
+
+texted's MCP server makes it easy to integrate with modern AI tools and editors.
+
+### Claude Desktop Integration
+
+Add to your Claude Desktop MCP configuration:
+```json
+{
+  "mcpServers": {
+    "texted": {
+      "command": "texted",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Now Claude can edit your files directly:
+> "Use texted to find all TODO comments in my Go files and replace them with FIXME"
+
+### Custom Tool Integration
+
+The MCP protocol means texted works with any MCP-compatible client:
+
+```javascript
+// Using the MCP client
+await mcpClient.callTool("edit_file", {
+  files: ["src/main.go", "src/utils.go"],
+  script: "search-forward 'old_func'; replace-match 'new_func'"
+});
+
+await mcpClient.callTool("eval", {
+  input: "hello world",
+  script: "upcase-region"
+});
+// Returns: "HELLO WORLD"
+```
+
+## Advanced Usage
+
+### Multi-Command Scripts
+Chain operations for complex transformations:
+```bash
+# Reformat function signatures
+search-forward "func "
+beginning-of-line
+mark-line
+end-of-line
+# Store selected line in variable, reformat, replace
+```
+
+### Error Handling
+texted gracefully handles errors and edge cases:
+- Invalid positions are automatically clamped to buffer bounds
+- Failed searches leave point unchanged
+- Malformed regexes fall back to literal string matching
+
+### Performance
+- Optimized for large files and batch operations
+- Minimal memory footprint for embedded usage
+- Fast startup time for scripting environments
+
+## Edlisp Function Reference
+
+texted's scripting language provides 47 built-in functions organized into logical categories:
+
+### Movement Commands
+Like Emacs, precise cursor control is fundamental:
+
+#### Character Movement
+- **`forward-char [count]`** - Move right by characters (default: 1)
+- **`backward-char [count]`** - Move left by characters (default: 1)
+
+#### Word Movement
+- **`forward-word [count]`** - Move right by words (default: 1) 
+- **`backward-word [count]`** - Move left by words (default: 1)
+
+#### Line Navigation
+- **`beginning-of-line`** - Jump to start of current line
+- **`end-of-line`** - Jump to end of current line
+- **`goto-line line-number`** - Jump to specific line (1-based)
+
+#### Buffer Navigation  
+- **`beginning-of-buffer`** - Jump to start of buffer
+- **`end-of-buffer`** - Jump to end of buffer
+- **`goto-char position`** - Jump to specific position (1-based)
+
+### Search and Replace
+Powerful pattern matching with regex support:
+
+#### Text Search
+- **`search-forward pattern`** - Find text moving forward
+- **`search-backward pattern`** - Find text moving backward  
+- **`re-search-forward regexp`** - Regex search forward
+- **`re-search-backward regexp`** - Regex search backward
+
+#### Pattern Testing
+- **`looking-at pattern`** - Test if point is at pattern (returns 't' or 'nil')
+- **`looking-back pattern`** - Test if text before point matches pattern
+
+#### Replacement
+- **`replace-match replacement`** - Replace last search match
+- **`replace-region replacement`** - Replace marked region
+
+### Text Manipulation
+Insert, delete, and modify content:
+
+#### Insertion
+- **`insert text`** - Insert text at point
+
+#### Character Deletion
+- **`delete-char [count]`** - Delete characters forward (default: 1)
+- **`delete-backward-char [count]`** - Delete characters backward (default: 1)
+
+#### Word Deletion
+- **`kill-word [count]`** - Delete words forward (default: 1)
+- **`backward-kill-word [count]`** - Delete words backward (default: 1)
+
+#### Line Deletion
+- **`kill-line [count]`** - Delete to end of line(s) (default: 1)
+- **`delete-line [count]`** - Delete entire line(s) (default: 1)
+
+#### Region Operations
+- **`delete-region`** - Delete text between mark and point
+
+### Mark and Region Management
+Essential for text selection and block operations:
+
+#### Mark Setting
+- **`set-mark`** - Set mark at current point
+- **`set-mark-command [position]`** - Set mark at specific position
+
+#### Intelligent Selection
+- **`mark-word`** - Select current/next word
+- **`mark-line [count]`** - Select line(s) (default: 1)
+- **`mark-whole-buffer`** - Select entire buffer
+
+#### Region Queries
+- **`region-beginning`** - Get start position of selection
+- **`region-end`** - Get end position of selection
+- **`exchange-point-and-mark`** - Swap point and mark positions
+
+### Buffer Information
+Query buffer state and positions:
+
+#### Position Queries
+- **`point`** - Get current cursor position (1-based)
+- **`mark`** - Get current mark position (1-based) 
+- **`point-min`** - Get minimum valid position (always 1)
+- **`point-max`** - Get maximum valid position (buffer-size + 1)
+- **`current-column`** - Get column number (0-based)
+- **`line-number-at-pos`** - Get line number (1-based)
+
+#### Buffer Properties
+- **`buffer-size`** - Get total character count
+- **`buffer-substring start end`** - Extract text slice (end=-1 for buffer end)
+
+### String Functions
+Manipulate string values (not buffer content):
+
+#### String Operations
+- **`concat ...strings`** - Join multiple strings
+- **`length string`** - Get string length
+- **`substring string start [end]`** - Extract substring
+
+#### Case Conversion
+- **`upcase string`** - Convert to uppercase
+- **`downcase string`** - Convert to lowercase
+- **`capitalize string`** - Capitalize first letter
+
+#### String Pattern Matching
+- **`string-match pattern string`** - Find pattern in string (returns index or 'nil')
+- **`replace-regexp-in-string regexp replacement string`** - Global regex replace
+
+### Key Behavior Notes
+
+- **Positions**: All buffer positions use 1-based indexing
+- **Word Boundaries**: Words are letter sequences; punctuation/numbers are separators
+- **Regex Engine**: Uses Go's regexp package syntax  
+- **Search State**: Search functions store match info for `replace-match`
+- **Safety**: All operations validate arguments and bounds automatically
+
+## Examples and Patterns
+
+### Configuration File Updates
+```bash
+# Update version in package.json
+search-forward '"version":'
+search-forward '"'
+forward-char
+mark-word
+replace-region '"2.0.0"'
+```
+
+### Code Refactoring
+```bash
+# Rename functions across multiple files
+texted edit --script 'search-forward "oldFunctionName"; replace-match "newFunctionName"' src/*.js
+```
+
+### Log File Processing
+```bash
+# Extract error lines from log
+grep ERROR app.log | texted edit --script 'beginning-of-line; insert "[PROCESSED] "'
+```
+
+### Documentation Generation
+```bash
+# Add missing docstrings to Python functions
+texted edit --script 'search-forward "def "; beginning-of-line; insert '\"\"\"TODO: Add docstring\"\"\"\n'  *.py
+```
+
+## Comparison to Other Tools
+
+| Feature | texted | sed | awk | perl -pe |
+|---------|--------|-----|-----|----------|
+| Syntax formats | 3 (shell/sexp/json) | 1 | 1 | 1 |
+| Buffer model | Emacs-like point/mark | Stream | Record-based | Stream |
+| Regex support | ✓ | ✓ | ✓ | ✓ |
+| Multi-file | ✓ | ✓ | Limited | ✓ |
+| Complex logic | ✓ | Limited | ✓ | ✓ |
+| MCP integration | ✓ | ✗ | ✗ | ✗ |
+| Learning curve | Low-Medium | Low | Medium | High |
+
+## Development
+
+```bash
+# Build
+go build ./cmd/texted
+
+# Run tests  
+go test ./edlisp
+
+# Integration tests
+go run ./cmd/texted test
+
+# Format and vet
+go fmt ./...
+go vet ./...
+```
+
+## License
+
+[Include appropriate license information]
+
+---
+
+*texted brings the power of programmatic text editing to the command line, combining the familiarity of Unix tools with the sophistication of Emacs commands. Whether you're automating code transformations, processing data files, or integrating with AI tools, texted provides the precision and flexibility you need.*
