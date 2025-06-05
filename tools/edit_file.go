@@ -13,7 +13,16 @@ import (
 var editFileDescription string
 
 func NewEditFileTool() mcp.Tool {
-	return mcp.NewTool("edit_file",
+	return NewEditFileToolWithPrefix("")
+}
+
+func NewEditFileToolWithPrefix(prefix string) mcp.Tool {
+	name := "edit_file"
+	if prefix != "" {
+		name = prefix + name
+	}
+
+	return mcp.NewTool(name,
 		mcp.WithDescription(editFileDescription),
 		mcp.WithString("script",
 			mcp.Required(),

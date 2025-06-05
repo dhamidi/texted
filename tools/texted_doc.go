@@ -14,7 +14,16 @@ import (
 var textedDocDescription string
 
 func NewTextedDocTool() mcp.Tool {
-	return mcp.NewTool("texted_doc",
+	return NewTextedDocToolWithPrefix("")
+}
+
+func NewTextedDocToolWithPrefix(prefix string) mcp.Tool {
+	name := "texted_doc"
+	if prefix != "" {
+		name = prefix + name
+	}
+
+	return mcp.NewTool(name,
 		mcp.WithDescription(textedDocDescription),
 		mcp.WithString("function_name",
 			mcp.Description("Specific function name to show documentation for"),

@@ -11,6 +11,8 @@ import (
 )
 
 func NewMCPCommand() *cobra.Command {
+	var prefix string
+
 	cmd := &cobra.Command{
 		Use:   "mcp",
 		Short: "Start an MCP server for texted",
@@ -21,29 +23,33 @@ through standardized tools. The server communicates over stdio and provides:
 - texted_eval: Transform input text using texted scripts
 - texted_doc: Query texted function documentation
 
-The server supports all texted script formats: shell-like syntax, S-expressions, and JSON.`,
+The server supports all texted script formats: shell-like syntax, S-expressions, and JSON.
+
+Use the --prefix flag to add a custom prefix to all tool names when registering them.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runMCPServer()
+			return runMCPServer(prefix)
 		},
 	}
+
+	cmd.Flags().StringVar(&prefix, "prefix", "", "Prefix to add to tool names")
 
 	return cmd
 }
 
-func runMCPServer() error {
+func runMCPServer(prefix string) error {
 	s := server.NewMCPServer(
 		"Texted MCP Server",
 		"1.0.0",
 		server.WithToolCapabilities(false),
 	)
 
-	editFileTool := tools.NewEditFileTool()
+	editFileTool := tools.NewEditFileToolWithPrefix(prefix)
 	s.AddTool(editFileTool, tools.EditFileHandler)
 
-	textedEvalTool := tools.NewTextedEvalTool()
+	textedEvalTool := tools.NewTextedEvalToolWithPrefix(prefix)
 	s.AddTool(textedEvalTool, tools.TextedEvalHandler)
 
-	textedDocTool := tools.NewTextedDocTool()
+	textedDocTool := tools.NewTextedDocToolWithPrefix(prefix)
 	s.AddTool(textedDocTool, tools.TextedDocHandler)
 
 	if err := server.ServeStdio(s); err != nil {

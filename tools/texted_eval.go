@@ -17,7 +17,16 @@ import (
 var textedEvalDescription string
 
 func NewTextedEvalTool() mcp.Tool {
-	return mcp.NewTool("texted_eval",
+	return NewTextedEvalToolWithPrefix("")
+}
+
+func NewTextedEvalToolWithPrefix(prefix string) mcp.Tool {
+	name := "texted_eval"
+	if prefix != "" {
+		name = prefix + name
+	}
+
+	return mcp.NewTool(name,
 		mcp.WithDescription(textedEvalDescription),
 		mcp.WithString("input",
 			mcp.Required(),
