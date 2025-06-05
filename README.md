@@ -193,12 +193,28 @@ Start a Model Context Protocol server for integration with AI tools:
 texted mcp
 ```
 
-The MCP server exposes two tools:
+The MCP server exposes three tools:
 
 - **`edit_file`**: Apply scripts to multiple files
-- **`eval`**: Transform text using scripts
+- **`texted_eval`**: Transform text using scripts
+- **`texted_doc`**: Query texted function documentation
 
-Perfect for integrating with Claude Desktop, VS Code extensions, or other MCP-compatible tools.
+#### Custom Tool Naming
+
+Use the `--prefix` flag to add a custom prefix to all tool names:
+
+```bash
+# Default tool names: edit_file, texted_eval, texted_doc
+texted mcp
+
+# With prefix: t_edit_file, t_texted_eval, t_texted_doc  
+texted mcp --prefix t_
+
+# Custom prefix: my_edit_file, my_texted_eval, my_texted_doc
+texted mcp --prefix my_
+```
+
+This is useful when running multiple MCP servers or avoiding naming conflicts with other tools.
 
 ## Programming with texted
 
@@ -286,6 +302,19 @@ Add to your Claude Desktop MCP configuration:
     "texted": {
       "command": "texted",
       "args": ["mcp"]
+    }
+  }
+}
+```
+
+Or with a custom prefix to avoid naming conflicts:
+
+```json
+{
+  "mcpServers": {
+    "texted": {
+      "command": "texted", 
+      "args": ["mcp", "--prefix", "t_"]
     }
   }
 }
