@@ -16,10 +16,6 @@ import (
 //go:embed texted_eval_description.txt
 var textedEvalDescription string
 
-func NewTextedEvalTool() mcp.Tool {
-	return NewTextedEvalToolWithPrefix("")
-}
-
 func NewTextedEvalToolWithPrefix(prefix string) mcp.Tool {
 	name := "texted_eval"
 	if prefix != "" {

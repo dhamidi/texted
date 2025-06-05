@@ -13,10 +13,6 @@ import (
 //go:embed texted_doc_description.txt
 var textedDocDescription string
 
-func NewTextedDocTool() mcp.Tool {
-	return NewTextedDocToolWithPrefix("")
-}
-
 func NewTextedDocToolWithPrefix(prefix string) mcp.Tool {
 	name := "texted_doc"
 	if prefix != "" {

@@ -12,10 +12,6 @@ import (
 //go:embed edit_file_description.txt
 var editFileDescription string
 
-func NewEditFileTool() mcp.Tool {
-	return NewEditFileToolWithPrefix("")
-}
-
 func NewEditFileToolWithPrefix(prefix string) mcp.Tool {
 	name := "edit_file"
 	if prefix != "" {
